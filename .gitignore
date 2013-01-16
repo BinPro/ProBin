@@ -1,0 +1,6 @@
+# Python byte comde #
+#####################
+*.pyc
+
+# Emacs generated files #
+*~
