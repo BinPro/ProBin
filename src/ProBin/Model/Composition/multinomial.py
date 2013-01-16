@@ -11,7 +11,7 @@ class Kmer_composition:
         l = self.kmer_length
         sub = "A"*l
         freq = self.occurrences(contig.seq,sub)
-        return [freq]
+        return freq
     def occurrences(self,string, sub):
         count = start = 0
         while True:
