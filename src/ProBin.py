@@ -6,9 +6,17 @@ from argparse import ArgumentParser
 
 from Bio import SeqIO
 
+import Model
+from Model import SeqSignatures
+from Model.SeqSignatures import multinomial as ml
 
 def main(contigs,kmer_len,verbose):
-    print kmer_len
+    kmer_compositions = []
+    for c in contigs:
+        a = ml.Kmer_composition(kmer_len,c)
+        kmer_compositions.append(a)
+    first_a = kmer_compositions[0]
+    print first_a.frequencies()
 
 
 if __name__=="__main__":
@@ -21,6 +29,8 @@ if __name__=="__main__":
         help='information written to stderr during execution.')
     parser.add_argument('-k', '--kmer', nargs='?', default=4, type=int,
         help='specify the length of kmer to use, default 4')
+    parser.add_argument('-m', '--model', nargs='?', default=1, type=int,
+        help='specify the model number to use, default 1')
     args = parser.parse_args()
     
     if args.output and args.output != '-':
