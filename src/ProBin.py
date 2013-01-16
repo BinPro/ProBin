@@ -9,12 +9,7 @@ from Bio import SeqIO
 from ProBin.Model.Composition import multinomial as ml
 
 def main(contigs,kmer_len,verbose):
-    kmer_compositions = []
-    for c in contigs:
-        a = ml.Kmer_composition(kmer_len,c)
-        kmer_compositions.append(a)
-    first_a = kmer_compositions[0]
-    print first_a.frequencies()
+    signatures = ml.calculate_signatures(kmer_len, contigs)
 
 
 if __name__=="__main__":

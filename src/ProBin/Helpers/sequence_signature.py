@@ -1,3 +1,5 @@
+from  itertools import product
+
 class Sequence_signature:
     def __init__(self,kmer_length, contig):
         self.kmer_length = kmer_length
@@ -7,16 +9,17 @@ class Sequence_signature:
         sub = "A"*l
         freqs = self.kmer_composition(contig.seq,l)
         return freqs
-    def possible_kmers(k):
+    def possible_kmers(self, k):
         return [''.join(x) for x in product('ATGC', repeat=k)]
-    def kmer_composition(s, k):
+    def kmer_composition(self, s, k):
         kmers = {}
         
-        for kmer in possible_kmers(k):
+        for kmer in self.possible_kmers(k):
             kmers[kmer] = 0
-            
+
         for i in range(len(s) - (k - 1)):
             kmer = s[i:i+k]
-            kmers[kmer] += 1
+            if "N" not in kmer:
+                kmers[str(kmer.upper())] += 1
 
         return kmers
