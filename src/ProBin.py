@@ -6,9 +6,7 @@ from argparse import ArgumentParser
 
 from Bio import SeqIO
 
-import Model
-from Model import SeqSignatures
-from Model.SeqSignatures import multinomial as ml
+from ProBin.Model.Coverage import multinomial as ml
 
 def main(contigs,kmer_len,verbose):
     kmer_compositions = []
