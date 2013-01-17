@@ -6,10 +6,10 @@ from argparse import ArgumentParser
 
 from Bio import SeqIO
 
-from probin.model.composition.multinomial import calculate_signatures, probability, log_probabiligy
+from probin.model.composition import  multinomial as ml
 
 def main(contigs,kmer_len,verbose):
-    signatures = calculate_signatures(kmer_len, contigs)
+    signatures = ml.calculate_signatures(kmer_len, contigs)
     size_possible_kmers = 4**kmer_len 
     prob = [1.0/size_possible_kmers]*size_possible_kmers
     probability = ml.probability(signatures[0],prob)
