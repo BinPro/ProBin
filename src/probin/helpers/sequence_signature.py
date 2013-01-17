@@ -1,25 +1,19 @@
-from  itertools import product
+from  array import array
 
 class SequenceSignature:
-    def __init__(self,kmer_length, contig):
+    def __init__(self,kmer_length, contig, possible_kmers):
         self.kmer_length = kmer_length
-        self.kmer_frequencies = self.init_freq(contig)
-    def init_freq(self,contig):
+        self.kmer_frequencies = self.init_freq(contig, possible_kmers)
+    def init_freq(self,contig, possible_kmers):
         l = self.kmer_length
-        sub = "A"*l
-        freqs = self.kmer_composition(contig.seq,l)
+        freqs = self.kmer_composition(contig.seq,l, possible_kmers)
         return freqs
-    def possible_kmers(self, k):
-        return [''.join(x) for x in product('ATGC', repeat=k)]
-    def kmer_composition(self, s, k):
-        kmers = {}
+    def kmer_composition(self, s, k, possible_kmers):
+        kmers = array('H', [0]*len(possible_kmers))
         
-        for kmer in self.possible_kmers(k):
-            kmers[kmer] = 0
-
         for i in range(len(s) - (k - 1)):
             kmer = s[i:i+k]
             if "N" not in kmer:
-                kmers[str(kmer.upper())] += 1
+                kmers[possible_kmers[str(kmer.upper())]] += 1
 
         return kmers
