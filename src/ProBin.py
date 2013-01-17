@@ -10,7 +10,12 @@ from ProBin.Model.Composition import multinomial as ml
 
 def main(contigs,kmer_len,verbose):
     signatures = ml.calculate_signatures(kmer_len, contigs)
-    
+    size_possible_kmers = 4**kmer_len 
+    prob = [1.0/size_possible_kmers]*size_possible_kmers
+    probability = ml.probability(signatures[0],prob)
+    log_probability = ml.log_probability(signatures[0],prob)
+    print probability
+    print log_probability
 
 if __name__=="__main__":
     parser = ArgumentParser()
