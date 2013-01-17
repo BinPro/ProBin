@@ -10,7 +10,7 @@ from ProBin.Model.Composition import multinomial as ml
 
 def main(contigs,kmer_len,verbose):
     signatures = ml.calculate_signatures(kmer_len, contigs)
-
+    
 
 if __name__=="__main__":
     parser = ArgumentParser()
