@@ -6,10 +6,10 @@ from argparse import ArgumentParser
 
 from Bio import SeqIO
 
-from ProBin.Model.Composition import multinomial as ml
+from probin.model.composition.multinomial import calculate_signatures
 
 def main(contigs,kmer_len,verbose):
-    signatures = ml.calculate_signatures(kmer_len, contigs)
+    signatures = calculate_signatures(kmer_len, contigs)
 
 
 if __name__=="__main__":
