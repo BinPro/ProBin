@@ -11,10 +11,8 @@ from probin.model.composition import  multinomial as ml
 def main(contigs,kmer_len,verbose):
     signatures = ml.calculate_signatures(kmer_len, contigs)
     size_possible_kmers = 4**kmer_len 
-    prob = [1.0/size_possible_kmers]*size_possible_kmers
-    probability = ml.probability(signatures[0],prob)
-    log_probability = ml.log_probability(signatures[0],prob)
-    print probability
+    uniform_prob = [1.0/size_possible_kmers]*size_possible_kmers
+    log_probability = ml.log_probability(signatures[0],uniform_prob)
     print log_probability
 
 if __name__=="__main__":

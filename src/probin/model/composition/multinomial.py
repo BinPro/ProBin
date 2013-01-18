@@ -17,7 +17,6 @@ def possible_kmers(k):
     kmer_dict = defaultdict(int)
     kmer_list = [''.join(x) for x in product('ATGC', repeat=k)]
     kmer_list.insert(0,'REST')
-    print kmer_list
     for i in range(len(kmer_list)):
         kmer_dict[kmer_list[i]] = i
     return kmer_dict
@@ -25,11 +24,9 @@ def possible_kmers(k):
 def probability(signature, prob_vector):
     phi = sum(signature)
     prod = factorial(phi)
-    print prod
     for j in range(len(prob_vector)):
         denom = factorial(signature[j])
         prod *= (prob_vector[j]**signature[j])/denom
-    print prod
     return prod
 
 def log_probability(signature, prob_vector):
