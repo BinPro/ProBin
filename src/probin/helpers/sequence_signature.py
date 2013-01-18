@@ -10,10 +10,8 @@ class SequenceSignature:
         return freqs
     def kmer_composition(self, s, k, possible_kmers):
         kmers = array('H', [0]*len(possible_kmers))
-        
+        s = s.upper()
         for i in range(len(s) - (k - 1)):
             kmer = s[i:i+k]
-            if "N" not in kmer:
-                kmers[possible_kmers[str(kmer.upper())]] += 1
-
+            kmers[possible_kmers[str(kmer)]] += 1
         return kmers

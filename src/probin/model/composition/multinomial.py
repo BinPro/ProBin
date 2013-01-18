@@ -3,18 +3,21 @@ from probin.helpers.sequence_signature import SequenceSignature as ss
 from  itertools import product
 from numpy import array, log
 from scipy.misc import factorial
+from collections import defaultdict
 
 def calculate_signatures(kmer_length,contigs):
     signatures = []
     kmers = possible_kmers(kmer_length)
     for c in contigs:
         signature = ss(kmer_length,c, kmers).kmer_frequencies
-        signatures.append(signature)
+        signatures.append(signature[1:])
     return signatures
 
 def possible_kmers(k):
-    kmer_dict = {}
+    kmer_dict = defaultdict(int)
     kmer_list = [''.join(x) for x in product('ATGC', repeat=k)]
+    kmer_list.insert(0,'REST')
+    print kmer_list
     for i in range(len(kmer_list)):
         kmer_dict[kmer_list[i]] = i
     return kmer_dict
