@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-../../../src/ProBin.py ../../../data/bambus2.scaffold.linear.fasta.one_contig
+./contig_generation.py ~/Dropbox/Shared/Binni_Johannes/references.fa -v -n 100 --max_length 10000 --min_length 30 -o ../results/generated_contigs.fa
