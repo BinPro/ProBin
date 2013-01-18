@@ -30,7 +30,6 @@ if __name__=="__main__":
     parser.add_argument('-m', '--model', nargs='?', default=1, type=int,
         help='specify the model number to use, default 1')
     args = parser.parse_args()
-    
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
 
