@@ -12,8 +12,9 @@ def main(contigs,kmer_len,verbose):
     signatures = ml.calculate_signatures(kmer_len, contigs)
     size_possible_kmers = 4**kmer_len 
     uniform_prob = [1.0/size_possible_kmers]*size_possible_kmers
-    log_probability = ml.log_probability(signatures[0],uniform_prob)
-    print log_probability
+    for s in signatures:
+        log_probability = ml.log_probability(s,uniform_prob)
+        print log_probability
 
 if __name__=="__main__":
     parser = ArgumentParser()

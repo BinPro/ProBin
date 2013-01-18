@@ -10,8 +10,7 @@ from Bio import SeqIO
 def main(genomes, n, min_length, max_length):
     for g in genomes:
         contigs = sample_contigs(g, n, min_length, max_length)
-        sys.stdout.write(">%s \n" % g.id)
-        sys.stdout.write("\n\n".join(contigs) + "\n\n")
+        sys.stdout.write("\n".join(contigs) + "\n\n")
 
 
 if __name__=="__main__":
