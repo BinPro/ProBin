@@ -16,6 +16,8 @@ def main(contigs,kmer_len,verbose):
         log_probability = ml.log_probability(s,uniform_prob)
         print log_probability
 
+
+
 if __name__=="__main__":
     parser = ArgumentParser()
     parser.add_argument('files', nargs='*', 
@@ -24,10 +26,10 @@ if __name__=="__main__":
         help='specify the output file.  The default is stdout')
     parser.add_argument('-v', '--verbose', action='store_true',
         help='information written to stderr during execution.')
-    parser.add_argument('-k', '--kmer', nargs='?', default=4, type=int,
+    parser.add_argument('-k', '--kmer', default=4, type=int,
         help='specify the length of kmer to use, default 4')
-    parser.add_argument('-m', '--model', nargs='?', default=1, type=int,
-        help='specify the model number to use, default 1')
+    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str,
+        help='specify the composition model to use, default multinomial. ["multinomial",]')
     args = parser.parse_args()
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
@@ -36,5 +38,6 @@ if __name__=="__main__":
     contigs = list(SeqIO.parse(handle,"fasta"))
     handle.close()
     if args.verbose:
+        sys.stderr.write("parameters: %s\n" %(args))
         sys.stderr.write("Number of contigs read: %i %s" % (len(contigs),os.linesep))
     main(contigs,args.kmer, args.verbose)
