@@ -28,8 +28,8 @@ if __name__=="__main__":
         help='information written to stderr during execution.')
     parser.add_argument('-k', '--kmer', default=4, type=int,
         help='specify the length of kmer to use, default 4')
-    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str,
-        help='specify the composition model to use, default multinomial. ["multinomial",]')
+    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial'],
+        help='specify the composition model to use, default multinomial.')
     args = parser.parse_args()
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
