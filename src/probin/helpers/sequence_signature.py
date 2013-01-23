@@ -1,4 +1,6 @@
 from  array import array
+from collections import defaultdict
+from  itertools import product
 
 class SequenceSignature:
     def __init__(self,kmer_length, contig, possible_kmers):
@@ -15,3 +17,13 @@ class SequenceSignature:
             kmer = s[i:i+k]
             kmers[possible_kmers[str(kmer)]] += 1
         return kmers
+
+def possible_kmers(k):
+    kmer_dict = defaultdict(int)
+    kmer_list = [''.join(x) for x in product('ATGC', repeat=k)]
+    kmer_list.insert(0,'REST')
+    for i in range(len(kmer_list)):
+        kmer_dict[kmer_list[i]] = i
+    return kmer_dict
+
+

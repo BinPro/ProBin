@@ -14,6 +14,7 @@ def main(contigs,kmer_len,verbose):
     uniform_prob = [1.0/size_possible_kmers]*size_possible_kmers
     for s in signatures:
         log_probability = ml.log_probability(s,uniform_prob)
+        print s
         print log_probability
 
 
