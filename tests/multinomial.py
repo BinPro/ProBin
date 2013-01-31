@@ -39,6 +39,12 @@ def test_signatures_one_contig_basic():
     calculated_parameters = ml.fit_parameters(4,c)
     assert_equal(calculated_parameters, correct_parameters)
 
+def test_signaturs_large_genome():
+    f = fileinput.input("data/8M_genome.fna")
+    c= list(SeqIO.parse(f,"fasta"))
+    f.close
+    calculated_parameters = ml.fit_parameters(4,c)
+    assert_equal(len(calculated_parameters), 256)
 
 
 
