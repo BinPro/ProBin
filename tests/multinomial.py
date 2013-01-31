@@ -44,7 +44,7 @@ def test_signaturs_large_genome():
     c= list(SeqIO.parse(f,"fasta"))
     f.close
     calculated_parameters = ml.fit_parameters(4,c)
-    assert_equal(len(calculated_parameters), 256)
+    assert_equal(len(calculated_parameters[0]), 256)
 
 
 
