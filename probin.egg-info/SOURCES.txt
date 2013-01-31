@@ -1,7 +1,0 @@
-setup.py
-probin.egg-info/PKG-INFO
-probin.egg-info/SOURCES.txt
-probin.egg-info/dependency_links.txt
-probin.egg-info/entry_points.txt
-probin.egg-info/not-zip-safe
-probin.egg-info/top_level.txt
