@@ -5,3 +5,5 @@
 *.swp
 # Emacs generated files #
 *~
+src/dist/*
+src/build/*
