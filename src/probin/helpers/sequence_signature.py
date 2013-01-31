@@ -11,7 +11,7 @@ class SequenceSignature:
         freqs = self.kmer_composition(contig.seq,l, possible_kmers)
         return freqs
     def kmer_composition(self, s, k, possible_kmers):
-        kmers = array('H', [0]*len(possible_kmers))
+        kmers = array('I', [0]*len(possible_kmers))
         s = s.upper()
         for i in range(len(s) - (k - 1)):
             kmer = s[i:i+k]
