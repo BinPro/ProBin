@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Implementation of a multinomial model based on sequence composition"""
-from probin.helpers.sequence_signature import SequenceSignature as ss
-from  itertools import product
-from numpy import array, log
-from scipy.misc import factorial
-from collections import defaultdict
+from probin.helpers.sequence_signature import SequenceSignature as SS
+from probin.helpers.sequence_signature import possible_kmers
+from probin.helpers.misc import log_fac
+from numpy import log
+
 
 def calculate_signatures(kmer_length,contigs):
     """For given set of contigs, calculate their sequence signitures based
@@ -12,26 +12,13 @@ on kmer length"""
     signatures = []
     kmers = possible_kmers(kmer_length)
     for c in contigs:
-        signature = ss(kmer_length,c, kmers).kmer_frequencies
+        signature = SS(kmer_length,c, kmers).kmer_frequencies
         signatures.append(signature[1:])
     return signatures
 
-def possible_kmers(k):
-    """Create all possible kmers of length k"""
-    kmer_dict = defaultdict(int)
-    kmer_list = [''.join(x) for x in product('ATGC', repeat=k)]
-    kmer_list.insert(0,'REST')  #If kmer in contig contains other than ATGC, it falls into this category
-    for i in range(len(kmer_list)):
-        kmer_dict[kmer_list[i]] = i
-    return kmer_dict
-
-def probability(signature, prob_vector):
-    phi = sum(signature)
-    prod = factorial(phi)
-    for j in range(len(prob_vector)):
-        denom = factorial(signature[j])
-        prod *= (prob_vector[j]**signature[j])/denom
-    return prod
+def fit_parameters(kmer_length, contigs):
+    signatures = calculate_signatures(kmer_length, contigs)
+    return [[n/float(sum(sig)) for n in sig] for sig in signatures]
 
 def log_probability(signature, prob_vector):
     phi = sum(signature)
@@ -40,6 +27,3 @@ def log_probability(signature, prob_vector):
         denom = log_fac(signature[j])
         log_prod += (log(prob_vector[j])*signature[j]) - denom
     return log_prod + log_fac(phi)
-
-def log_fac(i):
-    return sum(log(range(1,i+1)))
