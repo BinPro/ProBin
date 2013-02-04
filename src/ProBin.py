@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-""""""
+"""Script for clustering metagenomic contigs based on sequence composition and
+correlation between many samples."""
 import fileinput
 import sys
 import os

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Implementation of a multinomial model based on sequence composition"""
 from probin.helpers.sequence_signature import SequenceSignature as ss
 from  itertools import product
 from numpy import array, log
@@ -6,6 +7,8 @@ from scipy.misc import factorial
 from collections import defaultdict
 
 def calculate_signatures(kmer_length,contigs):
+    """For given set of contigs, calculate their sequence signitures based
+on kmer length"""
     signatures = []
     kmers = possible_kmers(kmer_length)
     for c in contigs:
@@ -14,9 +17,10 @@ def calculate_signatures(kmer_length,contigs):
     return signatures
 
 def possible_kmers(k):
+    """Create all possible kmers of length k"""
     kmer_dict = defaultdict(int)
     kmer_list = [''.join(x) for x in product('ATGC', repeat=k)]
-    kmer_list.insert(0,'REST')
+    kmer_list.insert(0,'REST')  #If kmer in contig contains other than ATGC, it falls into this category
     for i in range(len(kmer_list)):
         kmer_dict[kmer_list[i]] = i
     return kmer_dict
