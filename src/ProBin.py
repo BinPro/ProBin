@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+""""""
 import fileinput
 import sys
 import os
@@ -19,9 +20,9 @@ def main(contigs,kmer_len,verbose):
 
 
 if __name__=="__main__":
-    parser = ArgumentParser()
+    parser = ArgumentParser(description="Clustering of metagenomic contigs")
     parser.add_argument('files', nargs='*', 
-        help='specify input files, default is stdin')
+        help='specify input files on FASTA format, default is stdin')
     parser.add_argument('-o', '--output', 
         help='specify the output file.  The default is stdout')
     parser.add_argument('-v', '--verbose', action='store_true',
@@ -34,9 +35,14 @@ if __name__=="__main__":
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
 
-    handle = fileinput.input(args.files)
-    contigs = list(SeqIO.parse(handle,"fasta"))
-    handle.close()
+    try:
+        handle = fileinput.input(args.files)
+        contigs = list(SeqIO.parse(handle,"fasta"))
+    except IOError as error:
+        print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
+    finally:
+        handle.close()
+
     if args.verbose:
         sys.stderr.write("parameters: %s\n" %(args))
         sys.stderr.write("Number of contigs read: %i %s" % (len(contigs),os.linesep))
