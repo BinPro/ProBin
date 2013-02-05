@@ -7,3 +7,4 @@
 *~
 src/dist/*
 src/build/*
+src/*.egg*
