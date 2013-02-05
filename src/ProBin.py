@@ -9,6 +9,7 @@ from argparse import ArgumentParser
 from Bio import SeqIO
 
 from probin.model.composition import  multinomial as ml
+from probin.contig import Contig
 
 def main(contigs,kmer_len,verbose):
     signatures = ml.calculate_signatures(kmer_len, contigs)
@@ -16,7 +17,6 @@ def main(contigs,kmer_len,verbose):
     uniform_prob = [1.0/size_possible_kmers]*size_possible_kmers
     for s in signatures:
         log_probability = ml.log_probability(s,uniform_prob)
-        print s
         print log_probability
 
 
@@ -39,7 +39,7 @@ if __name__=="__main__":
 
     try:
         handle = fileinput.input(args.files)
-        contigs = list(SeqIO.parse(handle,"fasta"))
+        contigs = [Contig(x.id, x.seq.tostring(), args.kmer) for x in list(SeqIO.parse(handle,"fasta"))]
     except IOError as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
     finally:
