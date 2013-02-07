@@ -1,52 +1,63 @@
 #!/usr/bin/env python
 from probin.model.composition import multinomial as ml
+from probin.dna import DNA
 import random
 import fileinput
 import unittest
 from nose.tools import assert_almost_equal, assert_equal
 from Bio import SeqIO
 from numpy import array
+from collections import Counter
 
 # testing function: log_probability
 def test_uniform_one_contig_prob():
+    DNA.generate_kmer_hash(4)
     f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
     c = list(SeqIO.parse(f,"fasta"))
-    f.close
-    signatures = ml.calculate_signatures(4, c)
+    f.close()
+    dna_c = DNA(id = c[0].id, seq = str(c[0].seq))
+    s = dna_c.signature
     k = 4**4
-    uniform_prob = [1.0/k]*k
-    s=signatures[0]
+    uniform_prob = {}
+    for i,cnt in s.items():
+        uniform_prob[i] = 1./k
     log_prob = ml.log_probability(s,uniform_prob)
-    assert_almost_equal(log_prob, -1001.20751357)
+    print log_prob
+    assert_almost_equal(log_prob, -3791.05738056)
 
 # testing function: calculate_signatures
 def test_signatures_one_contig_basic():
     f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
     c = list(SeqIO.parse(f,"fasta"))
-    f.close
-    correct_signatures = CORRECT_SIGNATURES_ONE_CONTIG
-    calculated_signatures = list(ml.calculate_signatures(4, c)[0])
-    assert_equal(calculated_signatures,correct_signatures)
+    f.close()
+    dna_c = DNA(id = c[0].id, seq = str(c[0].seq))
+    calculated_signature = dna_c.signature
+    correct_signature = CORRECT_SIGNATURES_ONE_CONTIG
+    assert_equal(calculated_signature,correct_signature)
 
 # testing function: fit_parameters
-def test_signatures_one_contig_basic():
+def test_parameters_one_contig_basic():
     f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
     c = list(SeqIO.parse(f,"fasta"))
-    f.close
+    f.close()
+    dna_c = DNA(id = c[0].id, seq = str(c[0].seq))
     c_sig = CORRECT_SIGNATURES_ONE_CONTIG
-    n = sum(c_sig)
-    correct_parameters = [[sig/float(n) for sig in c_sig]]
-    calculated_parameters = ml.fit_parameters(4,c)
+    n = sum(c_sig.values())
+    correct_parameters = {}
+    for i,v in c_sig.items():
+        correct_parameters[i] = v/float(n)
+    calculated_parameters = ml.fit_parameters(dna_c.signature)
     assert_equal(calculated_parameters, correct_parameters)
 
 def test_signaturs_large_genome():
     f = fileinput.input("data/8M_genome.fna")
     c= list(SeqIO.parse(f,"fasta"))
     f.close
-    calculated_parameters = ml.fit_parameters(4,c)
-    assert_equal(len(calculated_parameters[0]), 256)
+    dna_c = DNA(id = c[0].id, seq = str(c[0].seq))
+    calculated_parameters = ml.fit_parameters(dna_c.signature)
+    assert_equal(len(calculated_parameters), 136)
 
 
 
 ## "Constants"
-CORRECT_SIGNATURES_ONE_CONTIG = [52, 40, 27, 32, 29, 36, 20, 35, 21, 29, 12, 29, 32, 26, 12, 35, 27, 24, 15, 9, 24, 33, 22, 20, 18, 17, 17, 17, 42, 23, 23, 24, 29, 25, 17, 12, 22, 27, 21, 22, 12, 13, 15, 8, 28, 18, 16, 19, 31, 17, 28, 14, 31, 16, 18, 11, 13, 3, 13, 16, 27, 15, 11, 22, 31, 25, 15, 24, 12, 22, 15, 29, 16, 18, 3, 15, 16, 16, 9, 16, 26, 22, 15, 20, 28, 21, 22, 28, 21, 21, 16, 17, 28, 22, 15, 17, 20, 22, 16, 18, 5, 24, 22, 18, 17, 26, 15, 21, 23, 20, 13, 11, 39, 19, 23, 22, 19, 18, 18, 15, 22, 7, 14, 25, 18, 5, 13, 22, 28, 18, 17, 19, 23, 23, 25, 17, 22, 17, 14, 10, 17, 18, 10, 8, 17, 13, 7, 13, 22, 23, 16, 18, 14, 15, 24, 18, 16, 10, 14, 10, 14, 19, 19, 11, 11, 24, 19, 5, 20, 7, 9, 13, 21, 14, 11, 5, 39, 18, 28, 13, 13, 20, 20, 14, 19, 12, 10, 7, 23, 10, 10, 8, 40, 37, 32, 30, 10, 18, 9, 31, 24, 28, 19, 27, 25, 16, 14, 16, 25, 19, 15, 15, 9, 22, 15, 16, 23, 16, 22, 15, 17, 15, 16, 7, 20, 22, 11, 12, 12, 4, 9, 5, 14, 13, 10, 9, 26, 15, 8, 16, 30, 14, 19, 22, 11, 8, 20, 15, 11, 8, 9, 17, 17, 24, 11, 15]
+CORRECT_SIGNATURES_ONE_CONTIG = Counter({21: 73, 85: 73, 97: 64, 192: 62, 112: 60, 84: 59, 165: 59, 193: 59, 133: 58, 101: 56, 128: 56, 176: 56, 199: 56, 149: 55, 37: 53, 105: 53, 89: 52, 132: 52, 69: 51, 93: 51, 65: 49, 73: 49, 81: 49, 181: 49, 213: 49, 33: 48, 96: 48, 109: 48, 203: 47, 204: 47, 214: 47, 148: 46, 195: 46, 201: 46, 216: 46, 240: 46, 243: 46, 53: 45, 225: 45, 184: 44, 188: 44, 217: 44, 161: 43, 219: 43, 168: 42, 200: 42, 242: 41, 141: 40, 208: 40, 117: 39, 236: 39, 246: 39, 253: 39, 77: 38, 129: 38, 197: 38, 113: 37, 136: 37, 144: 37, 151: 37, 205: 37, 5: 36, 152: 36, 116: 35, 124: 35, 140: 35, 177: 35, 207: 35, 224: 35, 49: 34, 156: 34, 209: 34, 173: 33, 215: 33, 220: 33, 172: 32, 221: 32, 252: 32, 160: 31, 179: 31, 237: 31, 241: 31, 153: 29, 169: 29, 247: 29, 61: 28, 137: 28, 180: 28, 185: 28, 164: 27, 226: 27, 232: 27, 239: 27, 251: 27, 80: 26, 223: 26, 227: 26, 196: 25, 248: 25, 17: 24, 183: 24, 212: 24, 233: 24, 255: 24, 108: 23, 230: 23, 120: 22, 145: 22, 157: 22, 211: 22, 100: 21, 163: 21, 191: 21, 228: 21, 249: 21, 254: 21, 121: 20, 245: 20, 235: 19, 45: 18, 189: 18, 125: 17, 135: 17, 229: 16, 210: 15, 231: 15, 244: 14, 147: 13, 167: 13, 68: 12, 198: 9, 250: 9, 238: 8, 187: 7, 175: 5, 57: 3})
