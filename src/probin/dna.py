@@ -46,11 +46,3 @@ class DNA(object):
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)
-if __name__=="__main__":
-    DNA.generate_kmer_hash(4)
-    a = DNA(id="ADF",seq="ACTTNACTT")
-    print a.signature
-    b = DNA(id="ADFA",seq="ACTTTAAACCCACACACAACATTTGGAAAGGAGASGAGCCATTA")
-    print b.signature
-    c = DNA(id="ADADAD",seq='AAAATTTTACGTAGAGCCATTGAGACCTT')
-    print c.signature
