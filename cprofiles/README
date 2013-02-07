@@ -1,0 +1,3 @@
+python -m cProfile -o output_filename.pstats path/to/script arg1 arg2
+
+python gprof2dot -f pstats myProfileFile | dot -Tpng -o image_output.png
