@@ -47,3 +47,6 @@ class DNA(object):
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)
+    @property
+    def full_seq(self):
+        return "N".join(self.seq)
