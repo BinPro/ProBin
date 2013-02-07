@@ -1,20 +1,7 @@
 #!/usr/bin/env python
 """Implementation of a multinomial model based on sequence composition"""
-from probin.helpers.sequence_signature import SequenceSignature as SS
-from probin.helpers.sequence_signature import possible_kmers
 from probin.helpers.misc import log_fac
 from numpy import log
-
-
-def calculate_signatures(kmer_length,contigs):
-    """For given set of contigs, calculate their sequence signitures based
-on kmer length"""
-    signatures = []
-    kmers = possible_kmers(kmer_length)
-    for c in contigs:
-        signature = SS(kmer_length,c, kmers).kmer_frequencies
-        signatures.append(signature[1:])
-    return signatures
 
 def fit_parameters(kmer_length, contigs):
     signatures = calculate_signatures(kmer_length, contigs)
