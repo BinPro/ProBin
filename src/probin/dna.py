@@ -33,12 +33,3 @@ class DNA(object):
             indexes = [self.kmer_hash[fragment[i:i+self.kmer_len]] for i in xrange(len(fragment) - (self.kmer_len-1))]
             signature.update(indexes)
         return signature
-
-if __name__=="__main__":
-    DNA.generate_kmer_hash(4)
-    a = DNA(id="ADF",seq="ACTTNACTT")
-    print a.signature
-    b = DNA(id="ADFA",seq="ACTTTAAACCCACACACAACATTTGGAAAGGAGAGAGCCATTA")
-    print b.signature
-    c = DNA(id="ADADAD",seq='AAAATTTTACGTAGAGCCATTGAGACCTT')
-    print c.signature
