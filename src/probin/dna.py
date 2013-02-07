@@ -19,6 +19,7 @@ class DNA(object):
                 rev_compl = ''.join([cls.BASE_COMPLEMENT[x] for x in reversed(kmer)])
                 cls.kmer_hash[rev_compl] = counter
                 counter += 1
+        cls.kmer_hash_count = counter
     
     def __init__(self,id,seq):
         if not self.kmer_len:
@@ -42,7 +43,7 @@ class DNA(object):
         not_in_hash = 0
         for i in xrange(len(seq) - (self.kmer_len - 1)):
             if seq[i:i+self.kmer_len] in self.kmer_hash:
-                indexes.append(seq[i:i+self.kmer_len])
+                indexes.append(self.kmer_hash[seq[i:i+self.kmer_len]])
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)

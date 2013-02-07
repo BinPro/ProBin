@@ -13,9 +13,10 @@ from probin.model.composition import  multinomial as ml
 from probin.dna import DNA
 
 def main(contigs,verbose):
-#    signatures = ml.calculate_signatures(kmer_len, contigs)
     size_possible_kmers = 4**DNA.kmer_len
-    uniform_prob = [1.0/size_possible_kmers]*size_possible_kmers
+    uniform_prob = {}
+    for i in xrange(DNA.kmer_hash_count):
+        uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
     for contig in contigs:
         log_probability = ml.log_probability(contig.signature,uniform_prob)
         print log_probability
