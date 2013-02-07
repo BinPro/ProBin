@@ -27,3 +27,7 @@ def test_signature_3():
     correct_signature = Counter({21: 2, 85: 2, 228: 2, 5: 1, 136: 1, 144: 1, 157: 1, 167: 1, 173: 1, 183: 1, 57: 1, 188: 1, 61: 1, 193: 1, 197: 1, 211: 1, 84: 1, 220: 1, 221: 1, 112: 1, 241: 1, 116: 1, 245: 1})
     assert_equal(c.signature, correct_signature)
     assert_equal(n_len, n_sum+3)
+def test_empty_seq():
+    c = DNA(id="ADADAD",seq='')
+    assert_equal(bool(c),True)
+    

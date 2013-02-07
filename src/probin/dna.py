@@ -6,6 +6,7 @@ class DNA(object):
     BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}
     kmer_hash={}
     kmer_len = None
+    
     @classmethod
     def generate_kmer_hash(cls,kmer_len):
         if cls.kmer_hash:
@@ -30,6 +31,7 @@ class DNA(object):
         
     def calculate_signature(self):
         signature = Counter()
+        not_in_hash = 0
         for fragment in self.seq:
             if len(fragment) < self.kmer_len:
                 continue
