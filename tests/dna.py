@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 from probin.dna import DNA
 from collections import Counter
-import random
-import fileinput
-import unittest
 from nose.tools import assert_almost_equal, assert_equal
-from Bio import SeqIO
-from numpy import array
 
 # testing attribute: signature
 def test_signature_1():

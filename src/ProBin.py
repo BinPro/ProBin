@@ -4,7 +4,6 @@
 correlation between many samples."""
 import fileinput
 import sys
-import os
 from argparse import ArgumentParser
 
 from Bio import SeqIO
@@ -13,7 +12,6 @@ from probin.model.composition import  multinomial as ml
 from probin.dna import DNA
 
 def main(contigs,verbose):
-    size_possible_kmers = 4**DNA.kmer_len
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)

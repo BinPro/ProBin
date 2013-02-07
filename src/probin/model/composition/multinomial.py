@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Implementation of a multinomial model based on sequence composition"""
-from probin.helpers.misc import log_fac
 from numpy import log
 
 def fit_parameters(sig):
@@ -17,3 +16,6 @@ def log_probability(signature, prob_vector):
         denom = log_fac(cnt)
         log_prod += (log(prob_vector[i])*cnt) - denom
     return log_prod + log_fac(phi)
+
+def log_fac(i):
+    return sum(log(range(1,i+1)))
