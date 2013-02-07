@@ -38,6 +38,9 @@ if __name__=="__main__":
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
     
+    if args.verbose:
+        print >> sys.stderr, "parameters: %s" % (args)
+        print >> sys.stderr, "Reading file and generating contigs"
     DNA.generate_kmer_hash(args.kmer)
     try:
         handle = fileinput.input(args.files)
@@ -48,6 +51,5 @@ if __name__=="__main__":
         handle.close()
 
     if args.verbose:
-        sys.stderr.write("parameters: %s\n" %(args))
-        sys.stderr.write("Number of contigs read: %i %s" % (len(contigs),os.linesep))
+        print >> sys.stderr, "parameters: %s" %(args)
     main(contigs, args.verbose)

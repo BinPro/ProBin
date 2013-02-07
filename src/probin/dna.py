@@ -1,5 +1,7 @@
 from itertools import product
 from collections import Counter
+import sys
+import os
 class DNA(object):
     BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}
     kmer_hash={}
@@ -30,15 +32,25 @@ class DNA(object):
         for fragment in self.seq:
             if len(fragment) < self.kmer_len:
                 continue
-            indexes = [self.kmer_hash[fragment[i:i+self.kmer_len]] for i in xrange(len(fragment) - (self.kmer_len-1))]
+            (indexes,not_in_hash) = self._get_kmer_indexes(fragment) #[self.kmer_hash[fragment[i:i+self.kmer_len]] for i in xrange(len(fragment) - (self.kmer_len-1)) if fragment[i:i+self.kmer_len] in self.kmer_hash]
             signature.update(indexes)
+        if not_in_hash:
+            sys.stderr.write("Sequence id: %s, skipped %i kmers that were not in dictionary%s" % (self.id,not_in_hash,os.linesep)) 
         return signature
-
+    def _get_kmer_indexes(self,seq):
+        indexes = []
+        not_in_hash = 0
+        for i in xrange(len(seq) - (self.kmer_len - 1)):
+            if seq[i:i+self.kmer_len] in self.kmer_hash:
+                indexes.append(seq[i:i+self.kmer_len])
+            else:
+                not_in_hash += 1
+        return (indexes,not_in_hash)
 if __name__=="__main__":
     DNA.generate_kmer_hash(4)
     a = DNA(id="ADF",seq="ACTTNACTT")
     print a.signature
-    b = DNA(id="ADFA",seq="ACTTTAAACCCACACACAACATTTGGAAAGGAGAGAGCCATTA")
+    b = DNA(id="ADFA",seq="ACTTTAAACCCACACACAACATTTGGAAAGGAGASGAGCCATTA")
     print b.signature
     c = DNA(id="ADADAD",seq='AAAATTTTACGTAGAGCCATTGAGACCTT')
     print c.signature
