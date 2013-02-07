@@ -10,14 +10,14 @@ from argparse import ArgumentParser
 from Bio import SeqIO
 
 from probin.model.composition import  multinomial as ml
-from probin.contig import Contig
+from probin.dna import DNA
 
-def main(contigs,kmer_len,verbose):
-    signatures = ml.calculate_signatures(kmer_len, contigs)
-    size_possible_kmers = 4**kmer_len 
+def main(contigs,verbose):
+#    signatures = ml.calculate_signatures(kmer_len, contigs)
+    size_possible_kmers = 4**DNA.kmer_len
     uniform_prob = [1.0/size_possible_kmers]*size_possible_kmers
-    for s in signatures:
-        log_probability = ml.log_probability(s,uniform_prob)
+    for contig in contigs:
+        log_probability = ml.log_probability(contig.signature,uniform_prob)
         print log_probability
 
 
@@ -37,10 +37,11 @@ if __name__=="__main__":
     args = parser.parse_args()
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
-
+    
+    DNA.generate_kmer_hash(args.kmer)
     try:
         handle = fileinput.input(args.files)
-        contigs = [Contig(x.id, x.seq.tostring(), args.kmer) for x in list(SeqIO.parse(handle,"fasta"))]
+        contigs = [DNA(x.id, x.seq.tostring().upper()) for x in list(SeqIO.parse(handle,"fasta"))]
     except IOError as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
     finally:
@@ -49,4 +50,4 @@ if __name__=="__main__":
     if args.verbose:
         sys.stderr.write("parameters: %s\n" %(args))
         sys.stderr.write("Number of contigs read: %i %s" % (len(contigs),os.linesep))
-    main(contigs,args.kmer, args.verbose)
+    main(contigs, args.verbose)
