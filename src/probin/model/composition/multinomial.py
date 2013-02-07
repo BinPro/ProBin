@@ -3,14 +3,17 @@
 from probin.helpers.misc import log_fac
 from numpy import log
 
-def fit_parameters(kmer_length, contigs):
-    signatures = calculate_signatures(kmer_length, contigs)
-    return [[n/float(sum(sig)) for n in sig] for sig in signatures]
+def fit_parameters(sig):
+    par = {}
+    n = sum(sig.values())
+    for i,v in sig.items():
+        par[i] = v/float(n)
+    return par
 
 def log_probability(signature, prob_vector):
-    phi = sum(signature)
+    phi = sum(signature.values())
     log_prod = 0
-    for j in range(len(prob_vector)):
-        denom = log_fac(signature[j])
-        log_prod += (log(prob_vector[j])*signature[j]) - denom
+    for i,cnt in signature.items():
+        denom = log_fac(cnt)
+        log_prod += (log(prob_vector[i])*cnt) - denom
     return log_prod + log_fac(phi)
