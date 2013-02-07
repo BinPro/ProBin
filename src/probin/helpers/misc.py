@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from numpy import log
 
 def log_fac(i):
