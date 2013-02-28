@@ -18,9 +18,9 @@ bindkey "^[." next
 screen -t probin_shell	0
 chdir src
 screen -t src  1
-chdir ../tests
+chdir tests
 screen -t tests  2
-chdir ../data 
+chdir ../../data 
 screen -t data  3
 
 select 0
