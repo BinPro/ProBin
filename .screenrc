@@ -1,4 +1,5 @@
 # Look and feel
+sessionname ProBin
 caption always "%{= bb}%{+b w}Screen: %n | %h %=%t %c"
 #hardstatus alwayslastline "%-Lw%{= BW}%50>%n%f* %t%{-}%+Lw%<"
 hardstatus alwayslastline
@@ -6,13 +7,14 @@ hardstatus string "%-w%{= BW}%50>%n %t%{-}%+w%<"
 # Our warning of activity
 activity "Activity in %t(%n)"
 
+altscreen on
+
 # Left Right meta key mods
 #ALT-,. and ALT-<>
 bindkey "^[<" eval number !echo $WINDOW-1|bc
 bindkey "^[>" eval number !echo $WINDOW+1|bc
 bindkey "^[," prev
 bindkey "^[." next
-
 screen -t probin_shell	0
 chdir src
 screen -t src  1
