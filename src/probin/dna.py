@@ -6,7 +6,7 @@ class DNA(object):
     BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}
     kmer_hash={}
     kmer_len = None
-    
+
     @classmethod
     def generate_kmer_hash(cls,kmer_len):
         if cls.kmer_hash:
@@ -14,8 +14,8 @@ class DNA(object):
         cls.kmer_len = kmer_len
         counter = 0
         for kmer in product("ATGC",repeat=cls.kmer_len):
+            kmer= ''.join(kmer)
             if kmer not in cls.kmer_hash:
-                kmer = ''.join(kmer)
                 cls.kmer_hash[kmer] = counter
                 rev_compl = ''.join([cls.BASE_COMPLEMENT[x] for x in reversed(kmer)])
                 cls.kmer_hash[rev_compl] = counter
