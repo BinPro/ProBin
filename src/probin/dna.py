@@ -27,7 +27,7 @@ class DNA(object):
             raise Exception("Please run DNA.generate_kmer_hash(kmer_len) first.")
         self.id = id
         self.seq = seq.upper().split("N")
-        self.signature = self.calculate_signature()
+        self.signature = None
         
     def calculate_signature(self):
         signature = Counter()
@@ -39,7 +39,7 @@ class DNA(object):
             signature.update(indexes)
         if not_in_hash:
             sys.stderr.write("Sequence id: %s, skipped %i kmers that were not in dictionary%s" % (self.id,not_in_hash,os.linesep)) 
-        return signature
+        self.signature = signature
     def _get_kmer_indexes(self,seq):
         indexes = []
         not_in_hash = 0
