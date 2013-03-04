@@ -8,15 +8,14 @@ from argparse import ArgumentParser
 
 from Bio import SeqIO
 
-from probin.model.composition import  multinomial as ml
 from probin.dna import DNA
 
-def main(contigs,verbose):
+def main(model,contigs,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
     for contig in contigs:
-        log_probability = ml.log_probability(contig.signature,uniform_prob)
+        log_probability = model.log_probability(contig.signature,uniform_prob)
         print log_probability
 
 
@@ -34,6 +33,12 @@ if __name__=="__main__":
     parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial'],
         help='specify the composition model to use, default multinomial.')
     args = parser.parse_args()
+    
+    try:
+        model = __import__("probin.model.composition.{0}".format(args.model_composition),globals(),locals(),["*"],-1)
+    except ImportError:
+        print "Failed to load module {0}. Will now exit".format(args.model_composition)
+
     if args.output and args.output != '-':
         sys.stdout = open(args.output, 'w')
     
@@ -51,4 +56,5 @@ if __name__=="__main__":
 
     if args.verbose:
         print >> sys.stderr, "parameters: %s" %(args)
-    main(contigs, args.verbose)
+    
+    main(model,contigs, args.verbose)
