@@ -33,6 +33,10 @@ ATTATATATGAGAGCGCGCGCGGTGTGTCTCTGCTGC
         for contig in contigs:
             contig.calculate_signature()
         kmeans.cluster(contigs,2,multinomial)
-        
     
-
+    def test_expectation(self):
+        pass
+    
+    def test_maximization(self):
+        pass
+    

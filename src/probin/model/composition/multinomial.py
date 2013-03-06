@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Implementation of a multinomial model based on sequence composition"""
 from numpy import log
-
+import numpy as np
 def fit_parameters(sig):
     par = {}
     n = sum(sig.values())
