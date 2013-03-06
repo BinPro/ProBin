@@ -4,10 +4,8 @@ python:
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
 # command to install dependencies
-env:
-  - NUMPY_VERSION=1.7.0
 install:
-  - pip install -U numpy=$NUMPY_VERSION --use-mirrors 
+  - pip install -U numpy --use-mirrors 
   - pip install biopython --use-mirrors 
 # command to run tests
 script: nosetests 
