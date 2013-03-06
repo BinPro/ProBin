@@ -9,6 +9,14 @@ def fit_parameters(sig):
         par[i] = v/float(n)
     return par
 
+def fit_nonzero_parameters(sig,kmer_hash_count):
+    pseudo_sig = np.ones(kmer_hash_count)
+    for key,cnt in sig.iteritems():
+        pseudo_sig[key] += cnt
+    pseudo_sig /= np.sum(pseudo_sig)
+    return pseudo_sig
+    
+
 def log_probability(signature, prob_vector):
     phi = sum(signature.values())
     log_prod = 0
