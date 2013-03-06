@@ -5,6 +5,7 @@ python:
   # maintainers to fix their pypy-dev package.
 # command to install dependencies
 install:
-  - pip install numpy biopython --use-mirrors 
+  - pip upgrade numpy --use-mirrors 
+  - pip install biopython --use-mirrors 
 # command to run tests
 script: nosetests 
