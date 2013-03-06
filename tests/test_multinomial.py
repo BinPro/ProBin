@@ -5,6 +5,7 @@ import fileinput
 from nose.tools import assert_almost_equal, assert_equal
 from Bio import SeqIO
 from collections import Counter
+import numpy as np
 
 class TestMultinomial(object):
     ## "Constants"
@@ -15,7 +16,7 @@ class TestMultinomial(object):
         reload(dna)
     # testing function: log_probability
     def test_uniform_one_contig_prob(self):
-        f = fileinput.input("../data/bambus2.scaffold.linear.fasta.one_contig")
+        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -31,7 +32,7 @@ class TestMultinomial(object):
     
     # testing function: calculate_signatures
     def test_signatures_one_contig_basic(self):
-        f = fileinput.input("../data/bambus2.scaffold.linear.fasta.one_contig")
+        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -42,7 +43,7 @@ class TestMultinomial(object):
     
     # testing function: fit_parameters
     def test_parameters_one_contig_basic(self):
-        f = fileinput.input("../data/bambus2.scaffold.linear.fasta.one_contig")
+        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -56,7 +57,7 @@ class TestMultinomial(object):
         assert_equal(calculated_parameters, correct_parameters)
     
     def test_signaturs_large_genome(self):
-        f = fileinput.input("../data/8M_genome.fna")
+        f = fileinput.input("data/8M_genome.fna")
         c= list(SeqIO.parse(f,"fasta"))
         f.close
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -65,4 +66,9 @@ class TestMultinomial(object):
         assert_equal(len(calculated_parameters), 136)
 
 
-
+    def test_fit_nonzero_parameters(self):
+        c = Counter([1,2,2,3,3,3])
+        distribution = ml.fit_nonzero_parameters(c,6)
+        pseudo = np.ones(6)
+        true_dist = (pseudo + np.array([0,1,2,3,0,0]))/float(12)
+        assert_equal((true_dist==distribution).all(), True)
