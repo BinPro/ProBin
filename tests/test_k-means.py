@@ -5,6 +5,7 @@ from probin.binning import kmeans
 from Bio import SeqIO
 import tempfile
 import sys
+from probin.model.composition import multinomial
 
 
 class TestKmeans(object):
@@ -26,11 +27,12 @@ ATTATATATGAGAGCGCGCGCGGTGTGTCTCTGCTGC
             seqs = SeqIO.parse(fh,"fasta")
             seqs = list(seqs)
         contigs = []
-        
-        print len(dna.DNA.kmer_hash.keys())
-        print max(dna.DNA.kmer_hash.values())
+
         for seq in seqs:
             contigs.append(dna.DNA(seq.id,seq.seq.tostring()))
-        assert_equal(True,True)
+        for contig in contigs:
+            contig.calculate_signature()
+        kmeans.cluster(contigs,2,multinomial)
+        
     
 
