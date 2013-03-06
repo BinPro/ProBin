@@ -7,7 +7,7 @@ import tempfile
 import sys
 
 
-class KmeansTest(object):
+class TestKmeans(object):
     FASTA=""">genome1
 GGGGCCCCTTTTTAAAATTATATGCGCGCGCAACACGG
 >genome2
@@ -27,10 +27,10 @@ ATTATATATGAGAGCGCGCGCGGTGTGTCTCTGCTGC
             seqs = list(seqs)
         contigs = []
         
-        print len(DNA.kmer_hash.keys())
-        print max(DNA.kmer_hash.values())
+        print len(dna.DNA.kmer_hash.keys())
+        print max(dna.DNA.kmer_hash.values())
         for seq in seqs:
-            contigs.append(DNA(seq.id,seq.seq.tostring()))
-        assert_equal(True, kmeans.cluster(contigs,2))
+            contigs.append(dna.DNA(seq.id,seq.seq.tostring()))
+        assert_equal(True,True)
     
 
