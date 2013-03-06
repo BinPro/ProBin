@@ -7,6 +7,13 @@ class DNA(object):
     kmer_hash={}
     kmer_len = None
 
+    def __init__(self,id,seq):
+        if not self.kmer_len:
+            raise Exception("Please run DNA.generate_kmer_hash(kmer_len) first.")
+        self.id = id
+        self.seq = seq.upper().split("N")
+        self.signature = None
+        
     @classmethod
     def generate_kmer_hash(cls,kmer_len):
         if cls.kmer_hash:
@@ -22,12 +29,9 @@ class DNA(object):
                 counter += 1
         cls.kmer_hash_count = counter
     
-    def __init__(self,id,seq):
-        if not self.kmer_len:
-            raise Exception("Please run DNA.generate_kmer_hash(kmer_len) first.")
-        self.id = id
-        self.seq = seq.upper().split("N")
-        self.signature = None
+    @property
+    def full_seq(self):
+        return "N".join(self.seq)
         
     def calculate_signature(self):
         signature = Counter()
@@ -49,6 +53,3 @@ class DNA(object):
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)
-    @property
-    def full_seq(self):
-        return "N".join(self.seq)
