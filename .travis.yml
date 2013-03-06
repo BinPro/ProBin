@@ -7,7 +7,7 @@ python:
 env:
   - NUMPY_VERSION=1.7.0
 install:
-  - pip install -U numpy=NUMPY_VERSION --use-mirrors 
+  - pip install -U numpy=$NUMPY_VERSION --use-mirrors 
   - pip install biopython --use-mirrors 
 # command to run tests
 script: nosetests 
