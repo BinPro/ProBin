@@ -41,3 +41,4 @@ class TestDNA(object):
     def test_signature_calculation_is_not_in_constructor(self):
         a = dna.DNA(id="ADADAD",seq='AAAATTTTACGTAGAGCCATTGAGACCTT')
         assert_is_none(a.signature)
+        
