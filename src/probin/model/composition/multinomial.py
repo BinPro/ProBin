@@ -12,7 +12,7 @@ def fit_parameters(sig):
 def log_probability(signature, prob_vector):
     phi = sum(signature.values())
     log_prod = 0
-    for i,cnt in signature.items():
+    for i,cnt in signature.iteritems():
         denom = log_fac(cnt)
         log_prod += (log(prob_vector[i])*cnt) - denom
     return log_prod + log_fac(phi)
