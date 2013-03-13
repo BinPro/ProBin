@@ -22,10 +22,6 @@ class TestDirichlet(object):
         true_dist = (pseudo + np.array([0,1,2,3,0,0]))/float(12)
         assert_equal((true_dist==distribution).all(), True)
 
-    def test_fit_parameters(self):
-        c = CORRECT_SIGNATURES_ONE_CONTIG
-        distribution = dr.fit_parameters
-
     # testing function: log_probability
     def test_uniform_one_contig_prob(self):
         f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
