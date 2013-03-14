@@ -13,7 +13,10 @@ class DNA(object):
         self.id = id
         self.seq = seq.upper().split("N")
         self.signature = None
-        
+
+    def __repr__(self):
+        return "{0}".format(self.id)        
+    
     @classmethod
     def generate_kmer_hash(cls,kmer_len):
         if cls.kmer_hash:
