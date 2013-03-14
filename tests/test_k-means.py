@@ -4,38 +4,53 @@ from probin import dna
 from probin.binning import kmeans
 from Bio import SeqIO
 import tempfile
-import sys
 from probin.model.composition import multinomial
-
+import numpy as np
+import sys
 
 class TestKmeans(object):
     FASTA=""">genome1
-GGGGCCCCTTTTTAAAATTATATGCGCGCGCAACACGG
+GGGGCCCCTTTTTAAAATTATATGCGCGCGACAACACTG
 >genome2
+ATTATATATGAGAGATACGCGCGCTGTGTCTCTGCTGC
+>genome3
+GGGGCCCCTTTTTAAAATTATATGCGCGCGCAACACGG
+>genome4
 ATTATATATGAGAGCGCGCGCGGTGTGTCTCTGCTGC
 """
     def setUp(self):
         dna.DNA.generate_kmer_hash(4)
-    
-    def tearDown(self):
-        reload(dna)
-
-    def test_simple_binning(self):
+        self.cluster_count = 2
         with tempfile.NamedTemporaryFile() as fh:
             fh.write(self.FASTA)
             fh.seek(0)
             seqs = SeqIO.parse(fh,"fasta")
             seqs = list(seqs)
-        contigs = []
+        self.contigs = []
 
         for seq in seqs:
-            contigs.append(dna.DNA(seq.id,seq.seq.tostring()))
-        for contig in contigs:
+            self.contigs.append(dna.DNA(seq.id,seq.seq.tostring()))
+        for contig in self.contigs:
             contig.calculate_signature()
-        kmeans.cluster(contigs,2,multinomial)
-    
+            
+
+    def tearDown(self):
+        reload(dna)
+        self.contigs = []
+        
+    def test_simple_binning(self):
+        clusters = kmeans.cluster(self.contigs,self.cluster_count,multinomial)
+        s = set()
+        [set.add(x) for x in clusters]
+        assert_equal(len(self.contigs),len(s)) 
+        
     def test_expectation(self):
-        pass
+        centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
+        centroids[0,:] = multinomial.fit_nonzero_parameters(self.contigs[0].signature,dna.DNA.kmer_hash_count)
+        centroids[1,:] = multinomial.fit_nonzero_parameters(self.contigs[2].signature,dna.DNA.kmer_hash_count)
+        kmeans._expectation(self.contigs,centroids,multinomial)
+        
+    
     
     def test_maximization(self):
         pass
