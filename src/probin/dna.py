@@ -53,3 +53,6 @@ class DNA(object):
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)
+
+    def split_seq(self,l):
+        pass

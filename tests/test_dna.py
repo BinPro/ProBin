@@ -42,3 +42,8 @@ class TestDNA(object):
         a = dna.DNA(id="ADADAD",seq='AAAATTTTACGTAGAGCCATTGAGACCTT')
         assert_is_none(a.signature)
         
+        
+    def test_split_seq(self):
+        a = dna.DNA(id="ADADAD",seq='AAAATTTTAC GTAGAGCCAT TGAGACCTT')
+        seqs = a.split_seq(10)
+        assert_equal(len(seqs), 3)
