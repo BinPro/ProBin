@@ -1,7 +1,19 @@
 from itertools import product
-from collections import Counter
+from collections import Counter, defaultdict
 import sys
 import os
+
+# optimized sliding window function from
+# http://stackoverflow.com/a/7636587
+from itertools import tee, izip
+
+def window(seq,n):
+    els = tee(seq,n)
+    for i,el in enumerate(els):
+        for _ in xrange(i):
+            next(el, None)
+    return izip(*els)
+
 class DNA(object):
     BASE_COMPLEMENT = {"A":"T","T":"A","G":"C","C":"G"}
     kmer_hash={}
@@ -13,7 +25,10 @@ class DNA(object):
         self.id = id
         self.seq = seq.upper().split("N")
         self.signature = None
-        
+
+    def __repr__(self):
+        return "{0}".format(self.id)        
+    
     @classmethod
     def generate_kmer_hash(cls,kmer_len):
         if cls.kmer_hash:
@@ -32,24 +47,31 @@ class DNA(object):
     @property
     def full_seq(self):
         return "N".join(self.seq)
-        
+    
     def calculate_signature(self):
-        signature = Counter()
         not_in_hash = 0
+        self.signature = Counter()
         for fragment in self.seq:
             if len(fragment) < self.kmer_len:
                 continue
-            (indexes,not_in_hash) = self._get_kmer_indexes(fragment) #[self.kmer_hash[fragment[i:i+self.kmer_len]] for i in xrange(len(fragment) - (self.kmer_len-1)) if fragment[i:i+self.kmer_len] in self.kmer_hash]
-            signature.update(indexes)
-        if not_in_hash:
-            sys.stderr.write("Sequence id: %s, skipped %i kmers that were not in dictionary%s" % (self.id,not_in_hash,os.linesep)) 
-        self.signature = signature
+            (indexes,not_in_hash) = self._get_kmer_indexes(fragment)
+            self.signature.update(indexes)
+            if not_in_hash:
+                sys.stderr.write("Sequence id: %s, skipped %i kmers that were not in dictionary%s" % (self.id,not_in_hash,os.linesep)) 
+        
     def _get_kmer_indexes(self,seq):
-        indexes = []
+        indexes = defaultdict(int)
         not_in_hash = 0
-        for i in xrange(len(seq) - (self.kmer_len - 1)):
-            if seq[i:i+self.kmer_len] in self.kmer_hash:
-                indexes.append(self.kmer_hash[seq[i:i+self.kmer_len]])
+
+        # This call is the most time consuming 
+        # Therefore it is wise to keep it as fast as possible
+        kmers = Counter(window(seq,self.kmer_len))
+
+        # Once the kmers are counted, it's safe to do the checking
+        for kmer_tuple, count in kmers.iteritems():
+            kmer = "".join(kmer_tuple)
+            if kmer in self.kmer_hash:
+                indexes[self.kmer_hash[kmer]] += count
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)
