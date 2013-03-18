@@ -72,3 +72,19 @@ class TestMultinomial(object):
         pseudo = np.ones(6)
         true_dist = (pseudo + np.array([0,1,2,3,0,0]))/float(12)
         assert_equal((true_dist==distribution).all(), True)
+
+    def test_log_probability(self):
+        c = Counter({0:10,1: 4,2:1,3:8,4:20})
+        log_p_val = ml.log_probability(c,[0.2,0.1,0.05,0.2,0.45])
+        real_p = np.exp(log_p_val)
+        assert_almost_equal(real_p, 0.001074701)
+
+        c = Counter({0:1, 1:0})
+        log_p_val = ml.log_probability(c,[0.5,0.5])
+        real_p = np.exp(log_p_val)
+        assert_almost_equal(real_p, 0.5)
+
+        c = Counter({0:0, 1:1})
+        log_p_val = ml.log_probability(c,[0.5,0.5])
+        real_p = np.exp(log_p_val)
+        assert_almost_equal(real_p, 0.5)

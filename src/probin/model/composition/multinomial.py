@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Implementation of a multinomial model based on sequence composition"""
 from numpy import log
+from scipy.special import gammaln
 import numpy as np
 def fit_parameters(sig):
     par = {}
@@ -16,7 +17,6 @@ def fit_nonzero_parameters(sig,kmer_hash_count):
     pseudo_sig /= np.sum(pseudo_sig)
     return pseudo_sig
     
-
 def log_probability(signature, prob_vector):
     phi = sum(signature.values())
     log_prod = 0
@@ -26,4 +26,5 @@ def log_probability(signature, prob_vector):
     return log_prod + _log_fac(phi)
 
 def _log_fac(i):
-    return sum(log(range(1,i+1)))
+    # gammaln produces the natural logarithm of the factorial of i-1
+    return gammaln(i+1)
