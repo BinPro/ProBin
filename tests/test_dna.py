@@ -47,6 +47,12 @@ class TestDNA(object):
         test_seq = 'AAAATTTTACGTAGAGCCATTGAGACCTT'
         a = dna.DNA(id="ADADAD",seq=test_seq)
         sigs = a.split_seq_to_signatures(10,3)
+        a.calculate_signature()
+        original_sig = a.signature
+
         assert_equal(len(sigs), 3)
         # All kmers should be in the test_seq.
-        assert_equal(all([key in test_seq for key in sigs.keys()]), True)
+        assert_equal(all([key in original_sig for key in sigs[0].keys()]), True)
+        assert_equal(all([key in original_sig for key in sigs[1].keys()]), True)       
+        assert_equal(all([key in original_sig for key in sigs[2].keys()]), True)
+

@@ -1,5 +1,6 @@
 from itertools import product
 from collections import Counter, defaultdict
+from random import randint
 import sys
 import os
 
@@ -76,5 +77,13 @@ class DNA(object):
                 not_in_hash += 1
         return (indexes,not_in_hash)
 
-    def split_seq(self,l):
-        pass
+    def split_seq_to_signatures(self,l,n):
+        gen_l = len(self.full_seq)
+        parts = []
+        for i in xrange(n):
+            start = randint(0,(gen_l-l))
+            end = start+l
+            part = DNA(id = "nonsense!", seq=self.full_seq[start:end])
+            part.calculate_signature()
+            parts.append(part)
+        return [part.signature for part in parts]
