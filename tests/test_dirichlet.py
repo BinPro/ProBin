@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from probin.model.composition import dirichlet as dr
+from probin.model.composition import dirichlet as model
 from probin import dna
 import fileinput
 from nose.tools import assert_almost_equal, assert_equal
@@ -17,60 +17,67 @@ class TestDirichlet(object):
 
     def test_fit_nonzero_parameters(self):
         c = Counter([1,2,2,3,3,3])
-        distribution = ml.fit_nonzero_parameters(c,6)
-        pseudo = np.ones(6)
-        true_dist = (pseudo + np.array([0,1,2,3,0,0]))/float(12)
-        assert_equal((true_dist==distribution).all(), True)
-
-    # testing function: log_probability
-    def test_uniform_one_contig_prob(self):
-        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
-        c = list(SeqIO.parse(f,"fasta"))
-        f.close()
-        dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
-        dna_c.calculate_signature()
-        s = dna_c.signature
-        k = 4**4
-        uniform_prob = {}
-        for i,cnt in s.items():
-            uniform_prob[i] = 1./k
-        log_prob = ml.log_probability(s,uniform_prob)
-        print log_prob
-        assert_almost_equal(log_prob, -3791.05738056)
-    
-    # testing function: calculate_signatures
-    def test_signatures_one_contig_basic(self):
-        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
-        c = list(SeqIO.parse(f,"fasta"))
-        f.close()
-        dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
-        dna_c.calculate_signature()
-        calculated_signature = dna_c.signature
-        correct_signature = self.CORRECT_SIGNATURES_ONE_CONTIG
-        assert_equal(calculated_signature,correct_signature)
-    
-    # testing function: fit_parameters
-    def test_parameters_one_contig_basic(self):
-        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
-        c = list(SeqIO.parse(f,"fasta"))
-        f.close()
-        dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
-        dna_c.calculate_signature()
-        c_sig = self.CORRECT_SIGNATURES_ONE_CONTIG
-        n = sum(c_sig.values())
-        correct_parameters = {}
-        for i,v in c_sig.items():
-            correct_parameters[i] = v/float(n)
-        calculated_parameters = ml.fit_parameters(dna_c.signature)
-        assert_equal(calculated_parameters, correct_parameters)
-    
-    def test_signaturs_large_genome(self):
-        f = fileinput.input("data/8M_genome.fna")
-        c= list(SeqIO.parse(f,"fasta"))
-        f.close
-        dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
-        dna_c.calculate_signature()
-        calculated_parameters = ml.fit_parameters(dna_c.signature)
-        assert_equal(len(calculated_parameters), 136)
+        distribution = model.fit_nonzero_parameters([c],6)
+        # Produce output of correct length
+        assert_equal(len(distribution), 7)
+        # Produce strictly positive parameters
+        assert_equal((distribution > 0).all,True)
 
 
+    def test_log_probability_order(self):
+        f = fileinput.input("generated_contigs_test.fna")
+        contigs = list(SeqIO.parse(f,"fasta"))
+        f.close()
+        dna_c1g1 = dna.DNA(id = c[0].id, seq = str(c[0].seq))
+        dna_c2g1 = dna.DNA(id = c[1].id, seq = str(c[1].seq))
+        dna_c3g1 = dna.DNA(id = c[2].id, seq = str(c[2].seq))
+
+        dna_c1g2 = dna.DNA(id = c[-3].id, seq = str(c[-3].seq))
+        dna_c2g2 = dna.DNA(id = c[-2].id, seq = str(c[-2].seq))
+        dna_c3g2 = dna.DNA(id = c[-1].id, seq = str(c[-1].seq))
+        
+        cluster1 = [dna_c1g1,dna_c2g1,dna_c3g1]
+        cluster2 = [dna_c1g2,dna_c2g2,dna_c3g2]
+        for contig in cluster1 + cluster2:
+            contig.calculate_signature()
+
+        parameters1 = model.fit_nonzero_parameters([c.signature() for c in cluster1])
+        parameters2 = model.fit_nonzero_parameters([c.signature() for c in cluster2])
+
+        s = dna_c1g1.signature()
+        log_prob1 = model.log_probability(s,parameters1)
+        log_prob2 = model.log_probability(s,parameters2)
+        assert_equal(log_prob1>log_prob2,True)
+    
+    def test_log_probability_basic(self):
+        f = fileinput.input("generated_contigs_test.fna")
+        contigs = list(SeqIO.parse(f,"fasta"))
+        f.close()
+        dna_c1g1 = dna.DNA(id = c[0].id, seq = str(c[0].seq))
+        dna_c2g1 = dna.DNA(id = c[1].id, seq = str(c[1].seq))
+        dna_c3g1 = dna.DNA(id = c[2].id, seq = str(c[2].seq))
+
+        dna_c1g2 = dna.DNA(id = c[-3].id, seq = str(c[-3].seq))
+        dna_c2g2 = dna.DNA(id = c[-2].id, seq = str(c[-2].seq))
+        dna_c3g2 = dna.DNA(id = c[-1].id, seq = str(c[-1].seq))
+        
+        cluster1 = [dna_c1g1,dna_c2g1,dna_c3g1]
+        cluster2 = [dna_c1g2,dna_c2g2,dna_c3g2]
+        for contig in cluster1 + cluster2:
+            contig.calculate_signature()
+
+        parameters1 = model.fit_nonzero_parameters([c.signature() for c in cluster1])
+        parameters2 = model.fit_nonzero_parameters([c.signature() for c in cluster2])
+
+        s1 = dna_c1g1.signature()
+        log_prob1 = model.log_probability(s1,parameters1)
+        assert_almost_equal(log_prob1, -1000)
+        log_prob2 = model.log_probability(s1,parameters2)
+        assert_equal(log_prob2,-1000)
+
+        s2 = dna_c1g2.signature()
+        log_prob3 = model.log_probability(s2,parameters1)
+        assert_equal(log_prob3,-1000)
+        log_prob4 = model.log_probability(s2,parameters2)
+        assert_equal(log_prob4,-1000)
+    
