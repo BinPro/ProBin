@@ -8,4 +8,8 @@ install:
   - pip install -q -U numpy --use-mirrors 
   - pip install -q biopython --use-mirrors 
 # command to run tests
-script: nosetests 
+script: nosetests
+
+branches:
+  only:
+    - master
