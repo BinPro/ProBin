@@ -43,7 +43,10 @@ class TestDNA(object):
         assert_is_none(a.signature)
         
         
-    def test_split_seq(self):
-        a = dna.DNA(id="ADADAD",seq='AAAATTTTAC GTAGAGCCAT TGAGACCTT')
-        seqs = a.split_seq(10)
-        assert_equal(len(seqs), 3)
+    def test_split_seq_to_signatures1(self):
+        test_seq = 'AAAATTTTACGTAGAGCCATTGAGACCTT'
+        a = dna.DNA(id="ADADAD",seq=test_seq)
+        sigs = a.split_seq_to_signatures(10,3)
+        assert_equal(len(sigs), 3)
+        # All kmers should be in the test_seq.
+        assert_equal(all([key in test_seq for key in sigs.keys()]), True)
