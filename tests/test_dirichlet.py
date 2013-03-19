@@ -17,27 +17,23 @@ class TestDirichlet(object):
         reload(dna)
 
     def test_fit_nonzero_parameters(self):
-        c = Counter([1,2,2,3,3,3])
-        distribution = model.fit_nonzero_parameters([c],6)
+        c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
+        c.calculate_signature()
+        
+        alpha_fit = model.fit_nonzero_parameters([c],4)
         # Produce output of correct length
-        assert_equal(len(distribution), 7)
+        assert_equal(len(alpha_fit), 4)
         # Produce strictly positive parameters
-        assert_equal((distribution > 0).all,True)
+        assert_equal((alpha_fit > 0).all(),True)
 
     def test_log_probability_without_fit(self):
-        # based on the values of the beta
-        # binomial distribution found on
-        # http://en.wikipedia.org/wiki/File:Beta-binomial_distribution_pmf.png
-        sig = [6,4]
+        c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
+        c.calculate_signature()
+
         alpha = [600,400]
-        p = model.log_probability(sig,alpha)
-        # bin(10,6) = 210
-        assert_almost_equal(p+log(210),log(0.249578),places=5)
-        sig = [2,8]
-        alpha = [0.2,0.25]
-        p = model.log_probability(sig,alpha)
-        # bin(10,8) = 45
-        assert_almost_equal(p+log(45), log(0.048616),places=5)
+        p = model.log_probability(c,alpha)
+        assert_almost_equal(p,-992.1644316)
+
 
     def test_log_probability_order(self):
         f = fileinput.input("generated_contigs_test.fna")
@@ -56,12 +52,11 @@ class TestDirichlet(object):
         for contig in cluster1 + cluster2:
             contig.calculate_signature()
 
-        parameters1 = model.fit_nonzero_parameters([c.signature for c in cluster1])
-        parameters2 = model.fit_nonzero_parameters([c.signature for c in cluster2])
+        parameters1 = model.fit_nonzero_parameters(cluster1,dna.DNA.kmer_hash_count)
+        parameters2 = model.fit_nonzero_parameters(cluster2,dna.DNA.kmer_hash_count)
 
-        s = dna_c1g1.signature
-        log_prob1 = model.log_probability(s,parameters1)
-        log_prob2 = model.log_probability(s,parameters2)
+        log_prob1 = model.log_probability(dna_c1g1,parameters1)
+        log_prob2 = model.log_probability(dna_c1g1,parameters2)
         assert_equal(log_prob1>log_prob2,True)
     
     def test_log_probability_full(self):
@@ -81,18 +76,20 @@ class TestDirichlet(object):
         for contig in cluster1 + cluster2:
             contig.calculate_signature()
 
-        parameters1 = model.fit_nonzero_parameters([c.signature for c in cluster1])
-        parameters2 = model.fit_nonzero_parameters([c.signature for c in cluster2])
+        parameters1 = model.fit_nonzero_parameters(cluster1,dna.DNA.kmer_hash_count)
+        parameters2 = model.fit_nonzero_parameters(cluster2,dna.DNA.kmer_hash_count)
 
-        s1 = dna_c1g1.signature
+        # These testa are probably too shaky, due to the
+        # numerical optimization for finding the parameters
+        s1 = dna_c1g1
         log_prob1 = model.log_probability(s1,parameters1)
-        assert_almost_equal(log_prob1, -1000)
+        assert_almost_equal(log_prob1, -5245.5078671, places = 3)
         log_prob2 = model.log_probability(s1,parameters2)
-        assert_equal(log_prob2,-1000)
+        assert_almost_equal(log_prob2,-5358.48214585, places = 3)
 
-        s2 = dna_c1g2.signature
+        s2 = dna_c1g2
         log_prob3 = model.log_probability(s2,parameters1)
-        assert_equal(log_prob3,-1000)
+        assert_almost_equal(log_prob3,-5673.40236240, places = 3)
         log_prob4 = model.log_probability(s2,parameters2)
-        assert_equal(log_prob4,-1000)
+        assert_almost_equal(log_prob4,-5590.592, places = 3)
     
