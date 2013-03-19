@@ -49,6 +49,13 @@ class TestDNA(object):
         
         assert_equal(c.pseudo_count(10), 1)
 
+    def test_pseudo_count2(self):
+        a = dna.DNA(id="ADF",seq="ACTTNACTT")
+        a.calculate_signature()
+        correct_signature = Counter([9, 9])
+        assert_equal(a.pseudo_count(9) == 3, True)
+        assert_equal(a.pseudo_count(10) == 1,True)
+
     def test_pseudo_counts(self):
         c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
         c.calculate_signature()
@@ -56,13 +63,7 @@ class TestDNA(object):
         pseudo_sign = [i for i in c.pseudo_counts]
         assert_equal(len(pseudo_sign), 136)
         assert_equal(pseudo_sign[9],2)
-        
-    def test_pseudo_count2(self):
-        a = dna.DNA(id="ADF",seq="ACTTNACTT")
-        a.calculate_signature()
-        correct_signature = Counter([9, 9])
-        assert_equal(a.pseudo_count(9) == 3, True)
-        assert_equal(a.pseudo_count(10) == 1,True)
+        assert_equal(sum(c.pseudo_counts),len(true_sign)+dna.DNA.kmer_hash_count)
         
 
     def test_empty_seq(self):
