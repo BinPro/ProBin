@@ -12,27 +12,9 @@ def cluster(contigs, model, cluster_count ,centroids=None):
     while (cluster_different):
 
         clusters = _expectation(contigs,model,centroids)
-#        #Expectations
-#        clusters = [set() for _ in xrange(cluster_count)]
-#        for contig in contigs:
-#            prob = [model.log_probability(contig.signature,centroid) for centroid in centroids]
-#            clust_ind = np.argmax(prob)
-#            clusters[clust_ind].add(contig)
 
         new_centroids = _maximization(contigs, model, clusters, centroids.shape)
-        #Maximization
-#        new_centroids = np.zeros(centroids.shape)
-#        for clust_ind ,clust in enumerate(clusters):
-#            if not clust:
-#                select_as_centroid = np.random.randint(0,len(contigs))
-#                new_centroid = model.fit_nonzero_parameters(contigs[select_as_centroid].signature,DNA.kmer_hash_count)
-#            else:
-#                new_centroid_count = Counter()
-#                [new_centroid_count.update(contig.signature) for contig in clust]
-#                new_centroid = model.fit_nonzero_parameters(new_centroid_count,DNA.kmer_hash_count)
-#            new_centroids[clust_ind,:] = new_centroid
-            
-        #Keep looping?
+        print>>sys.stderr, _evaluate_clustering(centroids, clusters)
         if (new_centroids == centroids).all():
             cluster_different = False
         (new_centroids,centroids) = (centroids,new_centroids)
