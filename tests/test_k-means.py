@@ -44,25 +44,37 @@ class TestKmeans(object):
         assert_equal(len(centroids), 2)
         assert_equal(len(centroids[0]),5 )
         assert_equal(np.sum(centroids,axis=1).all(),1)
+
+    def test_generate_kplusplus_centroids(self):
+        centroids = kmeans._generate_kplusplus(self.contigs,multinomial,2,dna.DNA.kmer_hash_count)
+        assert_equal(len(centroids), 2)
+        assert_equal(len(centroids[0]),dna.DNA.kmer_hash_count )
+        assert_equal(np.sum(centroids,axis=1).all(),1)
+        
+        correct_centroids = np.zeros((2,dna.DNA.kmer_hash_count))
+        correct_centroids[0,:] = multinomial.fit_nonzero_parameters(self.contigs[0].signature + self.contigs[1].signature,dna.DNA.kmer_hash_count)
+        correct_centroids[1,:] = multinomial.fit_nonzero_parameters(self.contigs[2].signature + self.contigs[3].signature,dna.DNA.kmer_hash_count)
+        (new_centroids,clusters) = kmeans.cluster(self.contigs,multinomial,2,centroids)
+
+                        
         
     def test_cluster_perfect_center(self):
         centroids = np.zeros((2,dna.DNA.kmer_hash_count))
         centroids[0,:] = multinomial.fit_nonzero_parameters(self.contigs[0].signature + self.contigs[1].signature,dna.DNA.kmer_hash_count)
         centroids[1,:] = multinomial.fit_nonzero_parameters(self.contigs[2].signature + self.contigs[3].signature,dna.DNA.kmer_hash_count)
-        new_centroids = kmeans.cluster(self.contigs,2,multinomial,centroids)
+        (new_centroids,clusters) = kmeans.cluster(self.contigs,multinomial,2,centroids)
         assert_equal((centroids==new_centroids).all(),True)
 
     def test_cluster_semi_center(self):
         centroids = np.zeros((2,dna.DNA.kmer_hash_count))
         centroids[0,:] = multinomial.fit_nonzero_parameters(self.contigs[0].signature,dna.DNA.kmer_hash_count)
         centroids[1,:] = multinomial.fit_nonzero_parameters(self.contigs[2].signature,dna.DNA.kmer_hash_count)
-        new_centroids = kmeans.cluster(self.contigs,2,multinomial,centroids)
+        (new_centroids,clusters) = kmeans.cluster(self.contigs,multinomial,2,centroids)
 
         correct_centroids = np.zeros((2,dna.DNA.kmer_hash_count))
         correct_centroids[0,:] = multinomial.fit_nonzero_parameters(self.contigs[0].signature + self.contigs[1].signature,dna.DNA.kmer_hash_count)
         correct_centroids[1,:] = multinomial.fit_nonzero_parameters(self.contigs[2].signature + self.contigs[3].signature,dna.DNA.kmer_hash_count)        
-
-        assert_equal((correct_centroids==new_centroids).all(),True)
         
+        assert_equal((correct_centroids==new_centroids).all(),True)
         
         
