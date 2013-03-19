@@ -59,7 +59,16 @@ class DNA(object):
             self.signature.update(indexes)
             if not_in_hash:
                 sys.stderr.write("Sequence id: %s, skipped %i kmers that were not in dictionary%s" % (self.id,not_in_hash,os.linesep)) 
-        
+    
+
+    def pseudo_count(self,index):
+        return self.signature.get(index,0)+1
+
+    @property
+    def pseudo_counts(self):
+        for i in xrange(self.kmer_hash_count):
+            yield self.pseudo_count(i)
+
     def _get_kmer_indexes(self,seq):
         indexes = defaultdict(int)
         not_in_hash = 0

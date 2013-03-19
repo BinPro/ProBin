@@ -33,6 +33,38 @@ class TestDNA(object):
         assert_equal(c.signature, correct_signature)
         assert_equal(n_len, n_sum+3)
     
+    def test_pseudo_count1(self):
+        c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
+        c.calculate_signature()
+        n_sum = sum(c.signature.values())
+        n_len = len("".join(c.seq))
+        true_sign = [9,2, 58, 70, 58, 3, 15, 57]
+        assert_equal(c.pseudo_count(9),2 )
+        assert_equal(c.pseudo_count(2),2 )
+        assert_equal(c.pseudo_count(58),3 )
+        assert_equal(c.pseudo_count(70),2 )
+        assert_equal(c.pseudo_count(3),2 )
+        assert_equal(c.pseudo_count(15),2 )
+        assert_equal(c.pseudo_count(57),2 )
+        
+        assert_equal(c.pseudo_count(10), 1)
+
+    def test_pseudo_counts(self):
+        c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
+        c.calculate_signature()
+        true_sign = [9,2, 58, 70, 58, 3, 15, 57]
+        pseudo_sign = [i for i in c.pseudo_counts]
+        assert_equal(len(pseudo_sign), 136)
+        assert_equal(pseudo_sign[9],2)
+        
+    def test_pseudo_count2(self):
+        a = dna.DNA(id="ADF",seq="ACTTNACTT")
+        a.calculate_signature()
+        correct_signature = Counter([9, 9])
+        assert_equal(a.pseudo_count(9) == 3, True)
+        assert_equal(a.pseudo_count(10) == 1,True)
+        
+
     def test_empty_seq(self):
         c = dna.DNA(id="ADADAD",seq='')
         assert_equal(bool(c),True)
