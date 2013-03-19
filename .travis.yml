@@ -5,6 +5,7 @@ python:
   # maintainers to fix their pypy-dev package.
 # command to install dependencies
 install:
+  - sudo apt-get install -qq libatlas3gf-base libatlas-dev
   - pip install -q -U numpy --use-mirrors
   - pip install -q scipy --use-mirrors 
   - pip install -q biopython --use-mirrors 
