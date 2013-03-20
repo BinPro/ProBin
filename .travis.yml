@@ -8,10 +8,10 @@ virtualenv:
   system_site_packages: true
 before_install:
    - sudo apt-get update -qq
-   - sudo apt-get install -qq python-numpy python-scipy cython libatlas-dev liblapack-dev gfortran
+   - sudo apt-get install -qq cython libatlas-dev liblapack-dev gfortran
 install:
-#  - pip install -q -U numpy --use-mirrors
-#  - pip install scipy
+  - pip install -q -U numpy --use-mirrors
+  - pip install scipy
   - pip install -q biopython --use-mirrors 
 # command to run tests
 script: nosetests
