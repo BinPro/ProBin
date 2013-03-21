@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-from nose.tools import assert_almost_equal, assert_equal, assert_true
+from nose.tools import assert_equal, assert_true
 from probin import dna
 from probin.binning import kmeans
 from Bio import SeqIO
-import tempfile
 from probin.model.composition import multinomial
 import numpy as np
 import sys
