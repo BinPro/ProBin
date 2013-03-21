@@ -3,21 +3,20 @@
 from scipy.special import gammaln
 import numpy as np
 
-@profile
 def fit_parameters(sig):
     par = {}
     n = sum(sig.values())
     for i,v in sig.items():
         par[i] = v/float(n)
     return par
-@profile
+
 def fit_nonzero_parameters(sig,kmer_hash_count):
     pseudo_sig = np.ones(kmer_hash_count)
     for key,cnt in sig.iteritems():
         pseudo_sig[key] += cnt
     pseudo_sig /= np.sum(pseudo_sig)
     return pseudo_sig
-@profile
+
 def log_probability(signature, prob_vector):
     log_prob_vector = np.log(prob_vector) 
     signature_vector = np.zeros(log_prob_vector.shape)
@@ -26,7 +25,7 @@ def log_probability(signature, prob_vector):
         signature_vector[key] = value
 
     return np.sum((signature_vector * log_prob_vector) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))
-@profile
+
 def _log_fac(i):
     # gammaln produces the natural logarithm of the factorial of i-1
     return gammaln(i+1)
