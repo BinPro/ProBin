@@ -19,12 +19,14 @@ class DNA(object):
     kmer_hash={}
     kmer_len = None
 
-    def __init__(self,id,seq):
+    def __init__(self,id,seq,calc_sign=False):
         if not self.kmer_len:
             raise Exception("Please run DNA.generate_kmer_hash(kmer_len) first.")
         self.id = id
         self.seq = seq.upper().split("N")
         self.signature = None
+        if calc_sign:
+            self.calculate_signature()
 
     def __repr__(self):
         return "{0}".format(self.id)        
