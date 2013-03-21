@@ -57,19 +57,14 @@ class TestKmeans(object):
         self.contigs = []
 
     def test_generate_kplusplus_centroids(self):
-        print>>sys.stderr,"1, kplusplus_cenroids"        
+
         centroids = kmeans._generate_kplusplus(self.contigs,multinomial,self.cluster_count,dna.DNA.kmer_hash_count)
-        print>>sys.stderr,"2,kplusplus_cenroids" 
         assert_equal(len(centroids), self.cluster_count)
         assert_equal(len(centroids[0]),dna.DNA.kmer_hash_count )
         assert_equal(np.sum(centroids,axis=1).all(),1)
         
-        (clust_prob,new_centroids,clusters) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,max_iter=5,repeat=2)
+        (clust_prob,new_centroids,clusters) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,max_iter=100,repeat=10)
         
-        print>>sys.stderr,"3,kplusplus_cenroids"        
-        for c in clusters:
-            print>>sys.stderr,c
-        print "-"*70
         assert_equal(kmeans._evaluate_clustering(self.correct_centroids,self.correct_clusters,multinomial),clust_prob)
 
                         
