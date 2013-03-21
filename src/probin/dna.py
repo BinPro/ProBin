@@ -86,13 +86,35 @@ class DNA(object):
                 not_in_hash += 1
         return (indexes,not_in_hash)
 
-    def split_seq_to_signatures(self,l,n):
-        gen_l = len(self.full_seq)
-        parts = []
-        for i in xrange(n):
-            start = randint(0,(gen_l-l))
-            end = start+l
-            part = DNA(id = "nonsense!", seq=self.full_seq[start:end])
+    def split_seq(self,l,n):
+        # Parts contains tuples of left-over sequences 
+        # of the genome and its starting position
+        parts = [(self.full_seq,0)]
+        while (i < n and max_length>l):
+            # Calculate the lengths of all parts
+            part_lengths = [len(part[0]) for part in parts]
+            max_length = max(part_lengths)
+            # Randomly choose which seq-part to sample
+            index = argmax(part_lengths*rand(i+1))
+            
+            if part_lengths[index]>l:
+                seq, new_parts = _pick_part(
+                    parts[index],part_lengths[index],l)
+                i+=1
+                seq = DNA(id = "nonsense!", seq=self.full_seq[start:end])
+                parts += new_parts
             part.calculate_signature()
             parts.append(part)
-        return [part.signature for part in parts]
+        return parts
+
+    def _pick_part(seq,seq_start,seq_l,l):
+            start = randint(0, (seq_l-l))
+            end = start+l
+            part = (seq[start:(end+1)
+
+                        
+#start here
+
+],seq_start + start)
+            seq_left = (seq[0:
+        return part, [(seq_left,seq_start),(seq_right,seq_start+end+1)]
