@@ -16,7 +16,7 @@ To be done""",
       url='www.github.com/andand/probin',
       license='',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      scripts=[],
+      scripts=["ProBin.py"],
       include_package_data=True,
       zip_safe=False,
       install_requires=[
