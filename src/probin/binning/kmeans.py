@@ -5,6 +5,7 @@ import numpy as np
 from collections import Counter
 import sys
 
+@profile
 def cluster(contigs, model, cluster_count ,centroids=None, max_iter=100, repeat=10):
     (max_clustering_prob,max_centroids,max_clusters) = (-np.inf,None,None)
     if repeat != 1:
@@ -28,9 +29,11 @@ def cluster(contigs, model, cluster_count ,centroids=None, max_iter=100, repeat=
                 print>>sys.stderr, "Clustering got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
         clustering_prob = curr_clustering_prob
         max_iter -= 1
+        print>>sys.stderr,"repeate: {0}, max_iter {1}".format(repeat,max_iter)
     (curr_max_clust_prob, curr_max_centr, curr_max_clust) = max([(max_clustering_prob, max_centroids, max_clusters), (clustering_prob, centroids, clusters)],key=lambda x: x[0])
     return (curr_max_clust_prob, curr_max_centr, curr_max_clust)
 
+@profile
 def _expectation(contigs, model, centroids):
     clusters = [set() for _ in xrange(len(centroids))]
     for contig in contigs:
@@ -38,7 +41,8 @@ def _expectation(contigs, model, centroids):
         clust_ind = np.argmax(prob)
         clusters[clust_ind].add(contig)
     return clusters
-    
+
+@profile    
 def _maximization(contigs, model, clusters, centroids_shape):
     new_centroids = np.zeros(centroids_shape)
     for clust_ind ,clust in enumerate(clusters):
@@ -52,11 +56,13 @@ def _maximization(contigs, model, clusters, centroids_shape):
         new_centroids[clust_ind,:] = new_centroid
     return new_centroids
 
+@profile
 def _generate_centroids(c_count,c_dim):
     centroids = np.random.rand(c_count,c_dim)
     centroids /= np.sum(centroids,axis=1,keepdims=True)
     return centroids
 
+@profile
 def _generate_kplusplus(contigs,model,c_count,c_dim):
     contigs_ind = range(len(contigs))
     centroids = np.zeros((c_count,c_dim))
@@ -73,7 +79,8 @@ def _generate_kplusplus(contigs,model,c_count,c_dim):
         contigs_ind.remove(prob[furthest])
         centroids[centroids_index,:] = model.fit_nonzero_parameters(contig.signature,DNA.kmer_hash_count)
     return centroids
-    
+
+@profile    
 def _evaluate_clustering(centroids,clusters, model):
     cluster_prob = 0
     for i,cluster in enumerate(clusters):
