@@ -15,7 +15,7 @@ def main(contigs,model,clustering,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clust_prob, centroids, clusters) = clustering.cluster(contigs, model, cluster_count=7 ,centroids=None, max_iter=100, repeat=10)
+    (clust_prob, centroids, clusters) = clustering.cluster(contigs, model, cluster_count=3 ,centroids=None, max_iter=100, repeat=10)
     
     return (clust_prob,centroids,clusters)
 
@@ -46,6 +46,8 @@ if __name__=="__main__":
         help='specify the composition model to use, default multinomial.')
     parser.add_argument('-c', '--clustering', default='kmeans', type=str, choices=['kmeans'],
         help='specify the clustering to use, default kmeans.')
+    parser.add_argument('-cc', '--cluster_count', default=10, type=int,
+        help='specify the number of cluster to use')
     args = parser.parse_args()
     
     try:

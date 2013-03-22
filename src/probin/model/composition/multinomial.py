@@ -18,13 +18,12 @@ def fit_nonzero_parameters(sig,kmer_hash_count):
     return pseudo_sig
 
 def log_probability(signature, prob_vector):
-    log_prob_vector = np.log(prob_vector) 
-    signature_vector = np.zeros(log_prob_vector.shape)
-    
+    signature_vector = np.zeros(np.shape(prob_vector))
+
     for key,value in signature.iteritems():
         signature_vector[key] = value
 
-    return np.sum((signature_vector * log_prob_vector) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))
+    return np.sum((signature_vector * np.log(prob_vector)) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))
 
 def _log_fac(i):
     # gammaln produces the natural logarithm of the factorial of i-1
