@@ -91,12 +91,10 @@ class TestDNA(object):
         assert_equal(test_seq[right[1]:],right[0])
 
 
-    def test_split_seq(self):
+    def test_split_seq_random(self):
         test_seq = 'AAAATTTTACGTAGAGCCATTGAGACCTT'
         a = dna.DNA(id="ADADAD",seq=test_seq)
-        seqs = a.split_seq(10,3)
-        a.calculate_signature()
-        original_sig = a.signature
+        seqs = a.split_seq_random(10,3)
 
         assert_equal(len(seqs), 3)
         assert_equal(len(seqs[0].full_seq),10)
@@ -107,5 +105,20 @@ class TestDNA(object):
         assert_equal((seqs[2].full_seq in a.full_seq), True)
 
         assert_equal(seqs[0].start_position>=0,True)
+        assert_equal(test_seq[seqs[0].start_position:][:10],seqs[0].full_seq)
+
+    def test_split_seq(self):
+        test_seq = 'AAAATTTTACGTAGAGCCATTGAGACCTT'
+        a = dna.DNA(id="ADADAD",seq=test_seq)
+        seqs = a.split_seq(10)
+
+        assert_equal(len(seqs), 3)
+        assert_equal(len(seqs[0].full_seq),10)
+        assert_equal(len(seqs[1].full_seq),10)
+        assert_equal(len(seqs[2].full_seq),9)
+
+        assert_equal(seqs[0].full_seq+seqs[1].full_seq+seqs[2].full_seq, test_seq)
+
+        assert_equal(seqs[0].start_position==0,True)
         assert_equal(test_seq[seqs[0].start_position:][:10],seqs[0].full_seq)
 
