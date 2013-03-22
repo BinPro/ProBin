@@ -10,3 +10,5 @@ class TestProBin(object):
         pass
     def test_main(self):
         assert_equal(True,True)
+    def test_none(self):
+        assert_equal(None,None)
