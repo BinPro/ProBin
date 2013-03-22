@@ -38,7 +38,7 @@ def _expectation(contigs, model, centroids):
         clust_ind = np.argmax(prob)
         clusters[clust_ind].add(contig)
     return clusters
-    
+
 def _maximization(contigs, model, clusters, centroids_shape):
     new_centroids = np.zeros(centroids_shape)
     for clust_ind ,clust in enumerate(clusters):
