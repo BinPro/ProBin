@@ -3,6 +3,7 @@ from collections import Counter, defaultdict
 from random import randint
 import sys
 import os
+import numpy as np
 
 # optimized sliding window function from
 # http://stackoverflow.com/a/7636587
@@ -89,32 +90,33 @@ class DNA(object):
     def split_seq(self,l,n):
         # Parts contains tuples of left-over sequences 
         # of the genome and its starting position
-        parts = [(self.full_seq,0)]
+        left_overs = [(self.full_seq,0)]
+        parts = []
+        i = 0
+        left_over_lengths = [len(part[0]) for part in left_overs]
+        max_length = left_over_lengths[0]
         while (i < n and max_length>l):
             # Calculate the lengths of all parts
-            part_lengths = [len(part[0]) for part in parts]
-            max_length = max(part_lengths)
             # Randomly choose which seq-part to sample
-            index = argmax(part_lengths*rand(i+1))
+            index = np.argmax(left_over_lengths)
             
-            if part_lengths[index]>l:
-                seq, new_parts = _pick_part(
-                    parts[index],part_lengths[index],l)
+            if left_over_lengths[index]>l:
+                part, new_left_overs = self._pick_part(
+                    left_overs[index][0],left_overs[index][1],left_over_lengths[index],l)
                 i+=1
-                seq = DNA(id = "nonsense!", seq=self.full_seq[start:end])
-                parts += new_parts
-            part.calculate_signature()
-            parts.append(part)
+                part_seq = DNA(id = self.id, seq=part[0])
+                part_seq.start_position = part[1]
+                parts.append(part_seq)
+                left_overs += new_left_overs
+
+                left_over_lengths = [len(part[0]) for part in left_overs]
+                max_length = max(left_over_lengths)
         return parts
 
-    def _pick_part(seq,seq_start,seq_l,l):
-            start = randint(0, (seq_l-l))
-            end = start+l
-            part = (seq[start:(end+1)
-
-                        
-#start here
-
-],seq_start + start)
-            seq_left = (seq[0:
-        return part, [(seq_left,seq_start),(seq_right,seq_start+end+1)]
+    def _pick_part(self, seq,seq_start,seq_l,l):
+        start = randint(0, (seq_l-l))
+        end = start+l
+        part = (seq[start:end],seq_start + start)
+        left = (seq[0:start],seq_start)
+        right = (seq[end:],seq_start+end)
+        return part, [left,right]
