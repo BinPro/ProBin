@@ -28,7 +28,7 @@ class TestDirichlet(object):
         c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
         c.calculate_signature()
 
-        alpha = [600,400]
+        alpha = np.array([600,400])
         p = model.log_probability(c,alpha)
         assert_almost_equal(p,-992.1644316)
 
