@@ -25,12 +25,16 @@ class TestDirichlet(object):
         assert_equal((alpha_fit > 0).all(),True)
 
     def test_log_probability_without_fit(self):
+        # Example from figure:
+        # http://en.wikipedia.org/wiki/File:Beta-binomial_distribution_pmf.png
         c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
-        c.calculate_signature()
+
+        pseudo_counts = Counter({0: 6, 1: 4})
 
         alpha = np.array([600,400])
-        p = model.log_probability(c,alpha)
-        assert_almost_equal(p,-992.1644316)
+        p = model.log_probability_test(pseudo_counts.values(),alpha)
+        # 10 choose 6 = 210
+        assert_almost_equal(p+np.log(210),-1.38799, places=3)
 
 
     def test_log_probability_order(self):
