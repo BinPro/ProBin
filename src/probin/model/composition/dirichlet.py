@@ -6,27 +6,42 @@ from scipy.special import gammaln
 from scipy.optimize import fmin_l_bfgs_b
 
 def fit_nonzero_parameters(dna_l,kmer_hash_count):
-    alpha0 = [1.0]*kmer_hash_count
+    return np.array(fit_nonzero_parameters_full_output(dna_l,kmer_hash_count)[0])
+
+def fit_nonzero_parameters_full_output(dna_l,kmer_hash_count):
+    alpha0, pcs = _all_pseudo_counts(dna_l,kmer_hash_count)
     alpha_bounds = [(0.0,None)]*kmer_hash_count
-    alpha_fit = fmin_l_bfgs_b(neg_log_probability_l,alpha0,args=(dna_l,),bounds=alpha_bounds, approx_grad=True)
-    return np.array(alpha_fit[0])
+    alpha_fit = fmin_l_bfgs_b(neg_log_probability_l,alpha0,args=(pcs,),bounds=alpha_bounds, approx_grad=True, epsilon=1e-12)
+    return alpha_fit
+
+def neg_log_probability_l(alpha,pcs):
+    A = np.sum(alpha)
+
+    # N is the number of sequences in the sample
+    N,_ = np.shape(pcs) # Different meaning than before
+
+    # Total number of kmers for each contig
+    M = np.sum(pcs,axis=1)
+
+    return -(N*gammaln(A) - 
+             np.sum(gammaln(A + M)) + 
+             np.sum(np.sum(gammaln(pcs+alpha),axis=0) - N*gammaln(alpha)))
+
+def _all_pseudo_counts(dna_l, kmer_hash_count):
+    pcs = np.zeros((len(dna_l),kmer_hash_count))
+    for index,seq in enumerate(dna_l):
+        pcs[index,:] = np.fromiter(seq.pseudo_counts, np.dtype('u4'), count=kmer_hash_count)
+    alpha_0 = np.sum(pcs,axis=0)
+    return alpha_0,pcs
 
 def log_probability(seq,alpha):
-    pc = np.fromiter(seq.pseudo_counts,np.dtype('u4'),count=alpha.shape[0])
-    return _log_probability_body(pc,alpha)
+    N = np.shape(alpha)[0]
+    pc_arr = np.fromiter(seq.pseudo_counts,np.dtype('u4'),count=N)
+    pc_mat = pc_arr.reshape((1,N))
+    return - neg_log_probability_l(alpha,pc_mat)
 
 def log_probability_test(pseudo_counts,alpha):
     # pseudo_counts given directly mainly for testing purposes
-    pc = np.array(pseudo_counts)
-    return _log_probability_body(pc,alpha)
-
-def _log_probability_body(pc,alpha):
-    A = np.sum(alpha)
-    N = np.sum(pc)
-    s = np.sum(gammaln(pc+alpha)-gammaln(alpha))
-    return gammaln(A) - gammaln(A+N) + s 
-
-
-def neg_log_probability_l(alpha,dna_l):
-    return -sum([log_probability(dna,alpha) for dna in dna_l])
-
+    pcs = np.zeros((1,len(pseudo_counts)))
+    pcs[0,:] = np.array(pseudo_counts)
+    return - neg_log_probability_l(alpha,pcs)
