@@ -6,7 +6,10 @@ from nose.tools import assert_almost_equal, assert_equal
 from Bio import SeqIO
 from collections import Counter
 import numpy as np
+import os
 from math import log
+
+cur_dir = os.path.dirname(__file__)
 
 class TestDirichlet(object):
     def setUp(self):
@@ -36,9 +39,29 @@ class TestDirichlet(object):
         # 10 choose 6 = 210
         assert_almost_equal(p+np.log(210),-1.38799, places=3)
 
+        pseudo_counts_m = np.zeros((1,2))
+        pseudo_counts_m[0,:] = np.array([6,4])
+
+        p2 = model.neg_log_probability_l(alpha,pseudo_counts_m)
+        assert_almost_equal(-p2+np.log(210),-1.38799, places=3)
+
+
+    def test_log_probability_list(self):
+        c = dna.DNA(id="ADADAD", seq='ACTTTAAACCC')
+        c.calculate_signature()
+        d = dna.DNA(id="ADADAD", seq='ACTTTACGAACCC')
+        d.calculate_signature()
+        dna_l = [c,d]
+        kmer_hash_count = dna.DNA.kmer_hash_count
+        alpha0, pcs = model._all_pseudo_counts(dna_l, kmer_hash_count)
+        alpha = [3.0]*kmer_hash_count
+        p = model.neg_log_probability_l(alpha,pcs)
+        assert_almost_equal(p,1465.29056,places=4)
+        
 
     def test_log_probability_order(self):
-        f = fileinput.input("generated_contigs_test.fna")
+        file_name = os.path.join(cur_dir,"..","data/generated_contigs_test.fna")
+        f = fileinput.input(file_name)
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c1g1 = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -62,7 +85,8 @@ class TestDirichlet(object):
         assert_equal(log_prob1>log_prob2,True)
     
     def test_log_probability_full(self):
-        f = fileinput.input("generated_contigs_test.fna")
+        file_name = os.path.join(cur_dir,"..","data/generated_contigs_test.fna")
+        f = fileinput.input(file_name)
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c1g1 = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -85,13 +109,13 @@ class TestDirichlet(object):
         # numerical optimization for finding the parameters
         s1 = dna_c1g1
         log_prob1 = model.log_probability(s1,parameters1)
-        assert_almost_equal(log_prob1/10000.0, -0.52, places = 2)
+        assert_almost_equal(log_prob1/10000.0, -0.526, places = 1)
         log_prob2 = model.log_probability(s1,parameters2)
         assert_almost_equal(log_prob2/10000.0,-0.5358, places = 2)
 
         s2 = dna_c1g2
         log_prob3 = model.log_probability(s2,parameters1)
-        assert_almost_equal(log_prob3/10000.0,-0.587, places = 2)
+        assert_almost_equal(log_prob3/10000.0,-0.577, places = 2)
         log_prob4 = model.log_probability(s2,parameters2)
-        assert_almost_equal(log_prob4/10000.0,-0.5591, places = 2)
+        assert_almost_equal(log_prob4/10000.0,-0.55, places = 2)
     
