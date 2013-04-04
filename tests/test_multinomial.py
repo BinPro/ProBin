@@ -50,11 +50,13 @@ class TestMultinomial(object):
         dna_c.calculate_signature()
         c_sig = self.CORRECT_SIGNATURES_ONE_CONTIG
         n = sum(c_sig.values())
-        correct_parameters = {}
-        for i,v in c_sig.items():
-            correct_parameters[i] = v/float(n)
-        calculated_parameters = ml.fit_parameters(dna_c.signature)
-        assert_equal(calculated_parameters, correct_parameters)
+        correct_parameters = np.zeros(dna.DNA.kmer_hash_count)
+        for i,v in c_sig.iteritems():
+            correct_parameters[i] += v
+        correct_parameters/=np.sum(correct_parameters)
+        calculated_parameters = ml.fit_parameters([dna_c])
+        assert_equal(calculated_parameters[0],correct_parameters[0])
+        assert_equal((calculated_parameters==correct_parameters).all(),True)
     
     def test_signaturs_large_genome(self):
         f = fileinput.input("data/8M_genome.fna")
@@ -62,16 +64,18 @@ class TestMultinomial(object):
         f.close
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
         dna_c.calculate_signature()
-        calculated_parameters = ml.fit_parameters(dna_c.signature)
+        calculated_parameters = ml.fit_parameters([dna_c])
         assert_equal(len(calculated_parameters), 136)
 
 
     def test_fit_nonzero_parameters(self):
-        c = Counter([1,2,2,3,3,3])
-        distribution = ml.fit_nonzero_parameters(c,6)
-        pseudo = np.ones(6)
-        true_dist = (pseudo + np.array([0,1,2,3,0,0]))/float(12)
-        assert_equal((true_dist==distribution).all(), True)
+        c = dna.DNA(id="hej",seq="AAAA")
+        c.calculate_signature()
+        distribution = ml.fit_nonzero_parameters([c])
+        true_dist = np.ones(136)
+        true_dist[0] = 2
+        true_dist /= np.sum(true_dist)
+        assert_equal((true_dist== distribution).all(),True)
 
     def test_log_probability(self):
         c = Counter({0:10,1: 4,2:1,3:8,4:20})
