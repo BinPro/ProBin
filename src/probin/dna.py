@@ -1,7 +1,9 @@
 from itertools import product
 from collections import Counter, defaultdict
+from random import randint
 import sys
 import os
+import numpy as np
 
 # optimized sliding window function from
 # http://stackoverflow.com/a/7636587
@@ -60,7 +62,16 @@ class DNA(object):
             self.signature.update(indexes)
             if not_in_hash:
                 sys.stderr.write("Sequence id: %s, skipped %i kmers that were not in dictionary%s" % (self.id,not_in_hash,os.linesep)) 
-        
+    
+
+    def pseudo_count(self,index):
+        return self.signature.get(index,0)+1
+
+    @property
+    def pseudo_counts(self):
+        for i in xrange(self.kmer_hash_count):
+            yield self.pseudo_count(i)
+
     def _get_kmer_indexes(self,seq):
         indexes = defaultdict(int)
         not_in_hash = 0
@@ -77,3 +88,58 @@ class DNA(object):
             else:
                 not_in_hash += 1
         return (indexes,not_in_hash)
+
+    def split_seq_random(self,l,n):
+        # left_overs contains tuples of left-over sequences 
+        # of the genome and its starting position
+        left_overs = [(self.full_seq,0)]
+        parts = []
+        i = 0
+        left_over_lengths = [len(part[0]) for part in left_overs]
+        max_length = left_over_lengths[0]
+        while (i < n and max_length>l):
+            # Calculate the lengths of all parts
+            # Randomly choose which seq-part to sample
+            index = np.argmax(left_over_lengths)
+            
+            if left_over_lengths[index]>l:
+                part, new_left_overs = self._pick_part(
+                    left_overs[index][0],left_overs[index][1],left_over_lengths[index],l)
+                i+=1
+                part_seq = DNA(id = self.id, seq=part[0])
+                part_seq.start_position = part[1]
+                parts.append(part_seq)
+                left_overs += new_left_overs
+
+                left_over_lengths = [len(part[0]) for part in left_overs]
+                max_length = max(left_over_lengths)
+        return parts
+
+    def split_seq(self,l):
+        # Parts contains tuples of sequences 
+        # of the genome and its starting position
+        seq = self.full_seq
+        seq_l = len(seq)
+        parts = []
+        n = seq_l/l
+
+        for i in xrange(n):
+            pos = i*l
+            part_seq = seq[pos:(pos+l)]
+            part =  DNA(id = self.id, seq=part_seq)
+            part.start_position = pos
+            parts.append(part)
+        part_seq = seq[n*l:]
+        part = DNA(id =self.id, seq=part_seq)
+        part.start_position = n*l
+        parts.append(part)
+
+        return parts
+
+    def _pick_part(self, seq,seq_start,seq_l,l):
+        start = randint(0, (seq_l-l))
+        end = start+l
+        part = (seq[start:end],seq_start + start)
+        left = (seq[0:start],seq_start)
+        right = (seq[end:],seq_start+end)
+        return part, [left,right]
