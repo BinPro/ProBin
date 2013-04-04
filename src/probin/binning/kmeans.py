@@ -48,11 +48,9 @@ def _maximization(contigs, model, clusters, centroids_shape):
     for clust_ind ,clust in enumerate(clusters):
         if not clust:
             select_as_centroid = np.random.randint(0,len(contigs))
-            new_centroid = model.fit_nonzero_parameters(contigs[select_as_centroid].signature,DNA.kmer_hash_count)
+            new_centroid = model.fit_nonzero_parameters([contigs[select_as_centroid]])
         else:
-            new_centroid_count = Counter()
-            [new_centroid_count.update(contig.signature) for contig in clust]
-            new_centroid = model.fit_nonzero_parameters(new_centroid_count,DNA.kmer_hash_count)
+            new_centroid = model.fit_nonzero_parameters(list(clust))
         new_centroids[clust_ind,:] = new_centroid
     return new_centroids
 
@@ -66,7 +64,7 @@ def _generate_kplusplus(contigs,model,c_count,c_dim):
     centroids = np.zeros((c_count,c_dim))
     contig_ind = np.random.randint(0,len(contigs_ind))
     contigs_ind.remove(contig_ind)
-    centroids[0,:] = model.fit_nonzero_parameters(contigs[contig_ind].signature,DNA.kmer_hash_count)
+    centroids[0,:] = model.fit_nonzero_parameters([contigs[contig_ind]])
     for centroids_index in xrange(1,c_count):
         prob = {}
         for contig_ind in contigs_ind:
@@ -75,7 +73,7 @@ def _generate_kplusplus(contigs,model,c_count,c_dim):
         furthest = min(prob)
         contig = contigs[prob[furthest]]
         contigs_ind.remove(prob[furthest])
-        centroids[centroids_index,:] = model.fit_nonzero_parameters(contig.signature,DNA.kmer_hash_count)
+        centroids[centroids_index,:] = model.fit_nonzero_parameters([contig])
     return centroids
 
 def _evaluate_clustering(centroids,clusters, model):
