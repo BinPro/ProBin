@@ -21,9 +21,9 @@ class TestDirichlet(object):
         c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
         c.calculate_signature()
         
-        alpha_fit = model.fit_nonzero_parameters([c],4)
+        alpha_fit = model.fit_nonzero_parameters([c])
         # Produce output of correct length
-        assert_equal(len(alpha_fit), 4)
+        assert_equal(len(alpha_fit), 136)
         # Produce strictly positive parameters
         assert_equal((alpha_fit > 0).all(),True)
 
@@ -52,7 +52,7 @@ class TestDirichlet(object):
         d = dna.DNA(id="ADADAD", seq='ACTTTACGAACCC')
         d.calculate_signature()
         dna_l = [c,d]
-        kmer_hash_count = dna.DNA.kmer_hash_count
+        kmer_hash_count = c.kmer_hash_count
         alpha0, pcs = model._all_pseudo_counts(dna_l, kmer_hash_count)
         alpha = [3.0]*kmer_hash_count
         p = model.neg_log_probability_l(alpha,pcs)
@@ -77,8 +77,8 @@ class TestDirichlet(object):
         for contig in cluster1 + cluster2:
             contig.calculate_signature()
 
-        parameters1 = model.fit_nonzero_parameters(cluster1,dna.DNA.kmer_hash_count)
-        parameters2 = model.fit_nonzero_parameters(cluster2,dna.DNA.kmer_hash_count)
+        parameters1 = model.fit_nonzero_parameters(cluster1)
+        parameters2 = model.fit_nonzero_parameters(cluster2)
 
         log_prob1 = model.log_probability(dna_c1g1,parameters1)
         log_prob2 = model.log_probability(dna_c1g1,parameters2)
@@ -102,8 +102,8 @@ class TestDirichlet(object):
         for contig in cluster1 + cluster2:
             contig.calculate_signature()
 
-        parameters1 = model.fit_nonzero_parameters(cluster1,dna.DNA.kmer_hash_count)
-        parameters2 = model.fit_nonzero_parameters(cluster2,dna.DNA.kmer_hash_count)
+        parameters1 = model.fit_nonzero_parameters(cluster1)
+        parameters2 = model.fit_nonzero_parameters(cluster2)
 
         # These testa are probably too shaky, due to the
         # numerical optimization for finding the parameters
