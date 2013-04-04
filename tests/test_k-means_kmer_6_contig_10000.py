@@ -62,5 +62,5 @@ class TestKmeans10000(object):
         assert_equal(len(centroids[0]),dna.DNA.kmer_hash_count )
         assert_equal(np.sum(centroids,axis=1).all(),1)
         
-        (clust_prob,new_centroids,clusters) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,max_iter=100,repeat=10)
+        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,max_iter=100,repeat=10)
         
