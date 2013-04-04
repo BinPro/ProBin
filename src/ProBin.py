@@ -11,11 +11,11 @@ from Bio import SeqIO
 
 from probin.dna import DNA
 
-def main(contigs,model,clustering,verbose):
+def main(contigs,model,clustering,cluster_count,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clust_prob, centroids, clusters) = clustering.cluster(contigs, model, cluster_count=3 ,centroids=None, max_iter=100, repeat=10)
+    (clust_prob, centroids, clusters) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10)
     
     return (clust_prob,centroids,clusters)
 
@@ -44,8 +44,8 @@ if __name__=="__main__":
         help='specify the length of kmer to use, default 4')
     parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial'],
         help='specify the composition model to use, default multinomial.')
-    parser.add_argument('-c', '--clustering', default='kmeans', type=str, choices=['kmeans'],
-        help='specify the clustering to use, default kmeans.')
+    parser.add_argument('-a', '--algorithm', default='kmeans', type=str, choices=['kmeans'],
+        help='specify the clustering algorithm to use, default kmeans.')
     parser.add_argument('-cc', '--cluster_count', default=10, type=int,
         help='specify the number of cluster to use')
     args = parser.parse_args()
@@ -57,7 +57,7 @@ if __name__=="__main__":
         sys.exit(-1)
         
     try:
-        clustering = __import__("probin.binning.{0}".format(args.clustering),globals(),locals(),["*"],-1)
+        clustering = __import__("probin.binning.{0}".format(args.algorithm),globals(),locals(),["*"],-1)
     except ImportError:
         print "Failed to load module {0}. Will now exit".format(args.clustering)
         sys.exit(-1)
@@ -81,5 +81,5 @@ if __name__=="__main__":
     if args.verbose:
         print >> sys.stderr, "parameters: %s" %(args)
     
-    (clust_prob,centroids,clusters) = main(contigs,model,clustering, args.verbose)
+    (clust_prob,centroids,clusters) = main(contigs,model,clustering,args.cluster_count, args.verbose)
     print_clustering_result(clust_prob,centroids,clusters,args)
