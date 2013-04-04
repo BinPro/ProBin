@@ -5,10 +5,13 @@ import numpy as np
 from collections import Counter
 import sys
 
-def cluster(contigs, model, cluster_count ,centroids=None, max_iter=100, repeat=10):
-    (max_clustering_prob,max_centroids,max_clusters) = (-np.inf,None,None)
-    if repeat != 1:
-        (max_clustering_prob,max_centroids,max_clusters) = cluster(contigs, model, cluster_count ,centroids=None, max_iter=max_iter, repeat=repeat-1)
+def cluster(contigs,model,cluster_count,centroids=None,max_iter=100, repeat=10):
+    (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)    
+    for run in xrange(repeat):
+        (clusters, clustering_prob, centroids) = _clustering(contigs, model, cluster_count ,centroids, max_iter)
+        (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, centroids)],key=lambda x: x[1])
+    return (max_clusters, max_clustering_prob, max_centroids)
+def _clustering(contigs, model, cluster_count ,centroids, max_iter):
     if centroids is None:
        centroids = _generate_kplusplus(contigs,model,cluster_count,DNA.kmer_hash_count)
     clustering_prob = -np.inf
@@ -28,8 +31,9 @@ def cluster(contigs, model, cluster_count ,centroids=None, max_iter=100, repeat=
                 print>>sys.stderr, "Clustering got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
         clustering_prob = curr_clustering_prob
         max_iter -= 1
-    (curr_max_clust_prob, curr_max_centr, curr_max_clust) = max([(max_clustering_prob, max_centroids, max_clusters), (clustering_prob, centroids, clusters)],key=lambda x: x[0])
-    return (curr_max_clust_prob, curr_max_centr, curr_max_clust)
+    if not max_iter:
+        print>>sys.stderr,"Finished maximum iteration"
+    return (clusters, clustering_prob, centroids)
 
 def _expectation(contigs, model, centroids):
     clusters = [set() for _ in xrange(len(centroids))]

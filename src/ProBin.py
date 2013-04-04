@@ -20,7 +20,7 @@ def main(contigs,model,clustering,cluster_count,verbose):
     return (clust_prob,centroids,clusters)
 
 
-def print_clustering_result(cluster_evaluation, centroids, clusters, arguments):
+def print_clustering_result(clusters, cluster_evaluation, centroids, arguments):
     RESULT="""#Clustering based on parameters: {args}.
 #clustering evaluation: {clust_prob}
 #<Centroids>
@@ -32,6 +32,17 @@ def print_clustering_result(cluster_evaluation, centroids, clusters, arguments):
                 "centroids":" ".join(map(str,centroids[i]))}
     print RESULT.format(**params)
 
+def _get_contigs(arg_files):
+    try:
+        handle = fileinput.input(arg_files)
+        contigs = [DNA(x.id, x.seq.tostring().upper(),calc_sign=True) for x in list(SeqIO.parse(handle,"fasta"))]
+    except IOError as error:
+        print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
+        sys.exit(-1)
+    finally:
+        handle.close()
+    return contigs
+
 if __name__=="__main__":
     parser = ArgumentParser(description="Clustering of metagenomic contigs")
     parser.add_argument('files', nargs='*', 
@@ -42,11 +53,11 @@ if __name__=="__main__":
         help='information written to stderr during execution.')
     parser.add_argument('-k', '--kmer', default=4, type=int,
         help='specify the length of kmer to use, default 4')
-    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial'],
+    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial','dirichlet'],
         help='specify the composition model to use, default multinomial.')
     parser.add_argument('-a', '--algorithm', default='kmeans', type=str, choices=['kmeans'],
         help='specify the clustering algorithm to use, default kmeans.')
-    parser.add_argument('-cc', '--cluster_count', default=10, type=int,
+    parser.add_argument('-c', '--cluster_count', default=10, type=int,
         help='specify the number of cluster to use')
     args = parser.parse_args()
     
@@ -55,11 +66,10 @@ if __name__=="__main__":
     except ImportError:
         print "Failed to load module {0}. Will now exit".format(args.model_composition)
         sys.exit(-1)
-        
     try:
-        clustering = __import__("probin.binning.{0}".format(args.algorithm),globals(),locals(),["*"],-1)
+        algorithm = __import__("probin.binning.{0}".format(args.algorithm),globals(),locals(),["*"],-1)
     except ImportError:
-        print "Failed to load module {0}. Will now exit".format(args.clustering)
+        print "Failed to load module {0}. Will now exit".format(args.algorithm)
         sys.exit(-1)
         
     if args.output and args.output != '-':
@@ -68,18 +78,13 @@ if __name__=="__main__":
     if args.verbose:
         print >> sys.stderr, "parameters: %s" % (args)
         print >> sys.stderr, "Reading file and generating contigs"
+        
     DNA.generate_kmer_hash(args.kmer)
-    try:
-        handle = fileinput.input(args.files)
-        contigs = [DNA(x.id, x.seq.tostring().upper(),calc_sign=True) for x in list(SeqIO.parse(handle,"fasta"))]
-    except IOError as error:
-        print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
-        sys.exit(-1)
-    finally:
-        handle.close()
+    
+    contigs = _get_contigs(args.files)
 
     if args.verbose:
         print >> sys.stderr, "parameters: %s" %(args)
     
-    (clust_prob,centroids,clusters) = main(contigs,model,clustering,args.cluster_count, args.verbose)
-    print_clustering_result(clust_prob,centroids,clusters,args)
+    (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
+    print_clustering_result(clusters,clust_prob,centroids,args)
