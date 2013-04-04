@@ -21,12 +21,11 @@ class TestMultinomial(object):
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
         dna_c.calculate_signature()
-        s = dna_c.signature
         k = 4**4
         uniform_prob = np.ones((dna.DNA.kmer_hash_count))
-        for i,cnt in s.items():
+        for i,cnt in dna_c.signature.items():
             uniform_prob[i] = 1./k
-        log_prob = ml.log_probability(s,uniform_prob)
+        log_prob = ml.log_probability(dna_c,uniform_prob)
         print log_prob
         assert_almost_equal(log_prob, -3791.05738056)
     
@@ -78,17 +77,21 @@ class TestMultinomial(object):
         assert_equal((true_dist== distribution).all(),True)
 
     def test_log_probability(self):
-        c = Counter({0:10,1: 4,2:1,3:8,4:20})
-        log_p_val = ml.log_probability(c,np.array([0.2,0.1,0.05,0.2,0.45]))
+        dna_c = dna.DNA(id="hej",seq="AAAA")
+        dna_c.signature = Counter({0:10,1: 4,2:1,3:8,4:20})
+        
+        log_p_val = ml.log_probability(dna_c,np.array([0.2,0.1,0.05,0.2,0.45]))
         real_p = np.exp(log_p_val)
         assert_almost_equal(real_p, 0.001074701)
 
-        c = Counter({0:1, 1:0})
-        log_p_val = ml.log_probability(c,np.array([0.5,0.5]))
+        dna_c = dna.DNA(id="hej",seq="AAAA")
+        dna_c.signature = Counter({0:1, 1:0})
+        log_p_val = ml.log_probability(dna_c,np.array([0.5,0.5]))
         real_p = np.exp(log_p_val)
         assert_almost_equal(real_p, 0.5)
 
-        c = Counter({0:0, 1:1})
-        log_p_val = ml.log_probability(c,np.array([0.5,0.5]))
+        dna_c = dna.DNA(id="hej",seq="AAAA")
+        dna_c.signature = Counter({0:0, 1:1})
+        log_p_val = ml.log_probability(dna_c,np.array([0.5,0.5]))
         real_p = np.exp(log_p_val)
         assert_almost_equal(real_p, 0.5)

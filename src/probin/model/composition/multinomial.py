@@ -22,10 +22,10 @@ def fit_nonzero_parameters(dna_l):
     pseudo_sig /= np.sum(pseudo_sig)
     return pseudo_sig
 
-def log_probability(signature, prob_vector):
+def log_probability(seq, prob_vector):
     signature_vector = np.zeros(np.shape(prob_vector))
 
-    for key,value in signature.iteritems():
+    for key,value in seq.signature.iteritems():
         signature_vector[key] = value
 
     return np.sum((signature_vector * np.log(prob_vector)) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))

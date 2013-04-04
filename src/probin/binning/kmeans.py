@@ -38,7 +38,7 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter):
 def _expectation(contigs, model, centroids):
     clusters = [set() for _ in xrange(len(centroids))]
     for contig in contigs:
-        prob = [model.log_probability(contig.signature,centroid) for centroid in centroids]
+        prob = [model.log_probability(contig,centroid) for centroid in centroids]
         clust_ind = np.argmax(prob)
         clusters[clust_ind].add(contig)
     return clusters
@@ -68,7 +68,7 @@ def _generate_kplusplus(contigs,model,c_count,c_dim):
     for centroids_index in xrange(1,c_count):
         prob = {}
         for contig_ind in contigs_ind:
-            sum_prob = sum([model.log_probability(contigs[contig_ind].signature,centroid) for centroid in centroids[:centroids_index]])
+            sum_prob = sum([model.log_probability(contigs[contig_ind],centroid) for centroid in centroids[:centroids_index]])
             prob[np.random.random()*sum_prob] = contig_ind
         furthest = min(prob)
         contig = contigs[prob[furthest]]
@@ -79,7 +79,7 @@ def _generate_kplusplus(contigs,model,c_count,c_dim):
 def _evaluate_clustering(centroids,clusters, model):
     cluster_prob = 0
     for i,cluster in enumerate(clusters):
-        cluster_prob += sum([model.log_probability(contig.signature,centroids[i]) for contig in cluster])
+        cluster_prob += sum([model.log_probability(contig,centroids[i]) for contig in cluster])
     return cluster_prob
 
 
