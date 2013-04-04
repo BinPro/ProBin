@@ -53,7 +53,7 @@ if __name__=="__main__":
         help='information written to stderr during execution.')
     parser.add_argument('-k', '--kmer', default=4, type=int,
         help='specify the length of kmer to use, default 4')
-    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial'],
+    parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial','dirichlet'],
         help='specify the composition model to use, default multinomial.')
     parser.add_argument('-a', '--algorithm', default='kmeans', type=str, choices=['kmeans'],
         help='specify the clustering algorithm to use, default kmeans.')
