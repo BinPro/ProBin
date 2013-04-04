@@ -118,4 +118,3 @@ class TestDirichlet(object):
         assert_almost_equal(log_prob3/10000.0,-0.577, places = 2)
         log_prob4 = model.log_probability(s2,parameters2)
         assert_almost_equal(log_prob4/10000.0,-0.55, places = 2)
-    
