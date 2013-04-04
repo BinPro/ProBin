@@ -20,7 +20,7 @@ def main(contigs,model,clustering,cluster_count,verbose):
     return (clust_prob,centroids,clusters)
 
 
-def print_clustering_result(cluster_evaluation, centroids, clusters, arguments):
+def print_clustering_result(clusters, cluster_evaluation, centroids, arguments):
     RESULT="""#Clustering based on parameters: {args}.
 #clustering evaluation: {clust_prob}
 #<Centroids>
@@ -86,5 +86,5 @@ if __name__=="__main__":
     if args.verbose:
         print >> sys.stderr, "parameters: %s" %(args)
     
-    (clust_prob,centroids,clusters) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
-    print_clustering_result(clust_prob,centroids,clusters,args)
+    (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
+    print_clustering_result(clusters,clust_prob,centroids,args)
