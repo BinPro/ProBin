@@ -11,4 +11,8 @@ def neg_log_probability_l(alpha,dna_l):
     pass
 
 def log_probability(seq,alpha):
+    
     pass
+
+def probability(seq,q,M):
+    q_i_k_l = 
