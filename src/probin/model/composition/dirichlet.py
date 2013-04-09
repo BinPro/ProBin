@@ -5,10 +5,11 @@ import numpy as np
 from scipy.special import gammaln
 from scipy.optimize import fmin_l_bfgs_b
 
-def fit_nonzero_parameters(dna_l,kmer_hash_count):
-    return np.array(fit_nonzero_parameters_full_output(dna_l,kmer_hash_count)[0])
+def fit_nonzero_parameters(dna_l):
+    return np.array(fit_nonzero_parameters_full_output(dna_l)[0])
 
-def fit_nonzero_parameters_full_output(dna_l,kmer_hash_count):
+def fit_nonzero_parameters_full_output(dna_l):
+    kmer_hash_count = dna_l[0].kmer_hash_count
     alpha0, pcs = _all_pseudo_counts(dna_l,kmer_hash_count)
     alpha_bounds = [(0.0,None)]*kmer_hash_count
     alpha_fit = fmin_l_bfgs_b(neg_log_probability_l,alpha0,args=(pcs,),bounds=alpha_bounds, approx_grad=True, epsilon=1e-12)
