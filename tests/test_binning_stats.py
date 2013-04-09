@@ -23,8 +23,6 @@ class TestBinningStats(object):
 
         for seq in seqs:
             self.contigs.append(dna.DNA(seq.description,seq.seq.tostring(),calc_sign=True))
-        for contig in self.contigs:
-            (contig.phylo_family, contig.phylo_genus, contig.phylo_species) = contig.id.split(" ",1)[1].split("|")
         (self.clusters,self.clust_prob,self.centroids) = kmeans.cluster(self.contigs, multinomial, self.cluster_count)
 
     def tearDown(self):

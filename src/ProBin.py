@@ -10,13 +10,17 @@ from argparse import ArgumentParser
 from Bio import SeqIO
 
 from probin.dna import DNA
+from probin.binning import statistics as stats
 
 def main(contigs,model,clustering,cluster_count,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clust_prob, centroids, clusters) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10)
-    
+    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10)
+    print stats.recall(contigs,clusters)
+    print stats.precision(contigs,clusters)
+    print stats.confusion_matrix(contigs,clusters)
+    print clust_prob
     return (clust_prob,centroids,clusters)
 
 
@@ -35,7 +39,7 @@ def print_clustering_result(clusters, cluster_evaluation, centroids, arguments):
 def _get_contigs(arg_files):
     try:
         handle = fileinput.input(arg_files)
-        contigs = [DNA(x.id, x.seq.tostring().upper(),calc_sign=True) for x in list(SeqIO.parse(handle,"fasta"))]
+        contigs = [DNA(x.id, x.seq.tostring().upper(),phylo=x.description.split(" ",1)[1], calc_sign=True) for x in list(SeqIO.parse(handle,"fasta"))]
     except IOError as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
@@ -87,4 +91,5 @@ if __name__=="__main__":
         print >> sys.stderr, "parameters: %s" %(args)
     
     (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
-    print_clustering_result(clusters,clust_prob,centroids,args)
+    #print_clustering_result(clusters,clust_prob,centroids,args)
+    
