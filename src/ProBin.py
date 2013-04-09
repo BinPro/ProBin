@@ -17,10 +17,6 @@ def main(contigs,model,clustering,cluster_count,verbose):
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
     (clusters,clust_prob, centroids) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10)
-    print stats.recall(contigs,clusters)
-    print stats.precision(contigs,clusters)
-    print stats.confusion_matrix(contigs,clusters)
-    print clust_prob
     return (clust_prob,centroids,clusters)
 
 
@@ -91,5 +87,9 @@ if __name__=="__main__":
         print >> sys.stderr, "parameters: %s" %(args)
     
     (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
+    print stats.confusion_matrix(contigs,clusters)
+    print stats.recall(contigs,clusters)
+    print stats.precision(contigs,clusters)
+    print clust_prob    
     #print_clustering_result(clusters,clust_prob,centroids,args)
     

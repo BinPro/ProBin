@@ -1,62 +1,27 @@
-# -*- coding: utf-8 -*-
 """
 Created on Thu Mar 28 10:07:24 2013
 Calculate recall and precision for clustering algorithms. Clustering 
-@author: Brynjar Smári Bjarnason
+@author: Brynjar Smari Bjarnason
 """
-from pandas import DataFrame, Series
-import sys
-
-def recall(contigs,clustering):
+from pandas import DataFrame, Series, pivot_table
+import numpy as np
+    
+def confusion_matrix(contigs,clustering,levels=["family","genus","species"]):
     _get_phylo(contigs)
     df = _create_dataframe(contigs,clustering)
+    cm = [pivot_table(df,rows=levels[:i+1],cols=["cluster"],aggfunc=np.sum) for i in xrange(len(levels))]
 
-    phylo_calc = [df.groupby([df.family]),df.groupby([df.family,df.genus]),df.groupby([df.family,df.genus,df.species])]
-    recall = {k:v for phylo in phylo_calc for k,v in _calc_recall(phylo).iteritems()}
+    return cm
+
+def recall(contigs,clustering):
+    confusion_matrixes = confusion_matrix(contigs,clustering)
+    recall = [matrix.div(matrix.sum(axis=1),axis=0) for matrix in confusion_matrixes]
     return recall
 
 def precision(contigs,clustering):
-    _get_phylo(contigs)
-    df = _create_dataframe(contigs,clustering)
-    
-    cluster_groups = df.groupby(df.cluster)
-
-    precision = {k:v for cluster_group in cluster_groups for k,v in _calc_precision(cluster_group).iteritems() }
+    confusion_matrixes = confusion_matrix(contigs,clustering)
+    precision = [matrix.div(matrix.sum()) for matrix in confusion_matrixes]
     return precision
-    
-def confusion_matrix(contigs,clustering):
-    _get_phylo(contigs)
-    df = _create_dataframe(contigs,clustering)
-    
-    keys_family = df.groupby(df.family).groups.keys()
-    data = [Series([0]*len(df.cluster.unique()),index=sorted(df.cluster.unique()),name=k) for k in keys_family]
-    ndf = DataFrame(data)
-    
-    return None
-    
-
-def _calc_precision(cluster_group):
-    name,cluster  = cluster_group
-    cluster_size = cluster.contig_size.sum()
-    precision = { \
-                (name,cluster.family.name):\
-                    cluster.groupby([cluster.family]).contig_size.sum().max() / cluster_size, \
-                (name,cluster.family.name,cluster.genus.name):\
-                    cluster.groupby([cluster.family,cluster.genus]).contig_size.sum().max() / cluster_size, \
-                (name,cluster.family.name,cluster.genus.name,cluster.species.name):\
-                    cluster.groupby([cluster.family,cluster.genus,cluster.species]).contig_size.sum().max() / cluster_size \
-                }
-    return precision
-
-def _calc_recall(phylo_group_level):
-    recall = {}
-    for name,phylo_group in phylo_group_level:
-        if type(name) is not tuple:
-            name = tuple([name])
-        tot_nucleotides = phylo_group.contig_size.sum()
-        recall[name] = phylo_group.groupby(phylo_group.cluster).contig_size.sum().max() / tot_nucleotides
-    return recall
-
 def _create_dataframe(contigs,clustering):
     rows = []
     for contig in contigs:
