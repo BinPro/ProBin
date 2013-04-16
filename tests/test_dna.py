@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from probin import dna
 from collections import Counter
-from nose.tools import assert_almost_equal, assert_equal, assert_is_none
+from nose.tools import assert_almost_equal, assert_equal, assert_is_none, raises
 
 # testing attribute: signature
 class TestDNA(object):
@@ -68,7 +68,14 @@ class TestDNA(object):
 
     def test_empty_seq(self):
         c = dna.DNA(id="ADADAD",seq='')
-        assert_equal(bool(c),True)
+        assert_equal(c.full_seq,'')
+        assert_equal(len(c),0)
+        assert_equal(bool(c),False)
+    
+    @raises(Exception)
+    def test_changing_seq(self):
+        c = dna.DNA(id="ADADAD",seq='')
+        c.seq = "ACTTTAAACCC"
          
     
     def test_signature_calculation_is_not_in_constructor(self):
@@ -122,3 +129,8 @@ class TestDNA(object):
         assert_equal(seqs[0].start_position==0,True)
         assert_equal(test_seq[seqs[0].start_position:][:10],seqs[0].full_seq)
 
+    def test_len_seq(self):
+        test_seq = 'AAAATTTTACGTAGAGCCATTGAGACCTT'
+        a = dna.DNA(id='ADADAD',seq=test_seq)
+        assert_equal(len(a),len(test_seq))
+        assert_equal(a._sequence_length,len(a))

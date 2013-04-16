@@ -26,8 +26,9 @@ class DNA(object):
             raise Exception("Please run DNA.generate_kmer_hash(kmer_len) first.")
         self.id = id
         self.phylo = phylo
-        self.seq = seq.upper().split("N")
         self.signature = None
+        self._splitted_seq = seq.upper().split("N")
+        self._sequence_length = None
         if calc_sign:
             self.calculate_signature()
 
@@ -48,11 +49,26 @@ class DNA(object):
                 cls.kmer_hash[rev_compl] = counter
                 counter += 1
         cls.kmer_hash_count = counter
-    
+
+    @property
+    def seq(self):
+        return self._splitted_seq
+
+    @seq.setter
+    def seq(self,value):
+        raise Exception("Seq can not be changed")
+
     @property
     def full_seq(self):
         return "N".join(self.seq)
     
+    def __len__(self):
+        """ The length of the sequence including any N:s"""
+        if not self._sequence_length:
+            self._sequence_length = len(self.full_seq)
+        return self._sequence_length
+
+
     def calculate_signature(self):
         not_in_hash = 0
         self.signature = Counter()
