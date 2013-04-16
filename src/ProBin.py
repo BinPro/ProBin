@@ -8,6 +8,7 @@ import os
 from argparse import ArgumentParser
 
 from Bio import SeqIO
+from datetime import datetime
 
 from probin.dna import DNA
 from probin.binning import statistics as stats
@@ -21,16 +22,16 @@ def main(contigs,model,clustering,cluster_count,verbose):
 
 
 def print_clustering_result(clusters, cluster_evaluation, centroids, arguments):
-    RESULT="""#Clustering based on parameters: {args}.
-#clustering evaluation: {clust_prob}
-#<Centroids>
-#{centroids}
-{clusters}"""
+    RESULT=["#Clustering based on parameters: {args}", \
+            "#clustering evaluation: {clust_prob}", \
+            "#<Centroids>", \
+            "#{centroids}", \
+            "{clusters}"]
     c = [">Cluster {0}{1}{2}".format(i,os.linesep, os.linesep.join(map(str,cluster))) for i,cluster in enumerate(clusters)]
     params =   {"args":arguments, "clust_prob":cluster_evaluation,\
                 "clusters":os.linesep.join(c),
                 "centroids":" ".join(map(str,centroids[i]))}
-    print RESULT.format(**params)
+    print RESULT.join(os.linesep).format(**params)
 
 def _get_contigs(arg_files):
     try:
@@ -55,8 +56,8 @@ if __name__=="__main__":
         help='specify the length of kmer to use, default 4')
     parser.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial','dirichlet'],
         help='specify the composition model to use, default multinomial.')
-    parser.add_argument('-a', '--algorithm', default='kmeans', type=str, choices=['kmeans'],
-        help='specify the clustering algorithm to use, default kmeans.')
+    parser.add_argument('-a', '--algorithm', default='em', type=str, choices=['kmeans','em'],
+        help='specify the clustering algorithm to use, default em.')
     parser.add_argument('-c', '--cluster_count', default=10, type=int,
         help='specify the number of cluster to use')
     args = parser.parse_args()
@@ -87,9 +88,13 @@ if __name__=="__main__":
         print >> sys.stderr, "parameters: %s" %(args)
     
     (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
-    print stats.confusion_matrix(contigs,clusters)
-    print stats.recall(contigs,clusters)
-    print stats.precision(contigs,clusters)
+    s = {"date":str(datetime.now()),"nrclust":args.cluster_count}
+    for i,m in enumerate(stats.confusion_matrix(contigs,clusters)):
+        m.to_csv("/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/{date}ConfusionMatrix-{nrclust}clusters.csv".format(**s))
+    for i,m in enumerate(stats.recall(contigs,clusters)):
+        m.to_csv("/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/{date}Recall-{nrclust}clusters.csv".format(**s))
+    for i,m in  enumerate(stats.precision(contigs,clusters)):
+        m.to_csv("/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/{date}Precision-{nrclust}clusters.csv".format(**s))
     print clust_prob    
     #print_clustering_result(clusters,clust_prob,centroids,args)
     
