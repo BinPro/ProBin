@@ -10,9 +10,17 @@ def fit_nonzero_parameters(dna_l):
 def neg_log_probability_l(alpha,dna_l):
     pass
 
-def log_probability(seq,alpha):
+def log_probability(seq,q,M,L):
+    """ Calculates the log probability for a single sequence
     
-    pass
+    seq - dna instance
+    q   - vector with relative frequency of 
+    frequency of cluster k in sample l
+    """
+    # q_k_l is the frequency of cluster k in sample l
+    q_prime = q*len(seq)/float(L)
+    M_i_l
+    
 
-def probability(seq,q,M):
-    q_i_k_l = 
+def probability(seq,q,M, L):
+    Q = np.prod(
