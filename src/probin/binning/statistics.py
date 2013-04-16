@@ -10,18 +10,22 @@ def confusion_matrix(contigs,clustering,levels=["family","genus","species"]):
     _get_phylo(contigs)
     df = _create_dataframe(contigs,clustering)
     cm = [pivot_table(df,rows=levels[:i+1],cols=["cluster"],aggfunc=np.sum) for i in xrange(len(levels))]
-
     return cm
 
 def recall(contigs,clustering):
     confusion_matrixes = confusion_matrix(contigs,clustering)
-    recall = [matrix.div(matrix.sum(axis=1),axis=0) for matrix in confusion_matrixes]
-    return recall
+    recalls = [matrix.div(matrix.sum(axis=1),axis=0) for matrix in confusion_matrixes]
+    for matrix in recalls:
+        matrix["recall"] = matrix.max(axis=1)
+    return recalls
 
 def precision(contigs,clustering):
     confusion_matrixes = confusion_matrix(contigs,clustering)
-    precision = [matrix.div(matrix.sum()) for matrix in confusion_matrixes]
-    return precision
+    precisions = [matrix.div(matrix.sum()).T for matrix in confusion_matrixes]
+    for precision in precisions:
+        precision["precision"] = precision.max(axis=1)
+    return precisions
+
 def _create_dataframe(contigs,clustering):
     rows = []
     for contig in contigs:
