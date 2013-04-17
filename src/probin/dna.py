@@ -133,8 +133,14 @@ class DNA(object):
         return parts
 
     def split_seq(self,l):
-        # Parts contains tuples of sequences 
-        # of the genome and its starting position
+        """ 
+        Split the full sequence including N:s into parts of length l
+
+        l - length of the parts, except possibly the last one
+        
+        Return tuples of sequences 
+        of the genome and its starting position.
+        """
         seq = self.full_seq
         seq_l = len(seq)
         parts = []
