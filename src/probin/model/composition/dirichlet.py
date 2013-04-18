@@ -6,13 +6,16 @@ import sys
 from scipy.special import gammaln,psi
 from scipy.optimize import fmin_l_bfgs_b, fmin_tnc
 
-def fit_nonzero_parameters(dna_l):
-    return np.array(fit_nonzero_parameters_full_output(dna_l)[0])
+def fit_nonzero_parameters(dna_l,algorithm="tnc"):
+    return np.array(fit_nonzero_parameters_full_output(dna_l,algorithm=algorithm)[0])
 
-def fit_nonzero_parameters_full_output(dna_l):
+def fit_nonzero_parameters_full_output(dna_l, algorithm="tnc"):
     """ Approximate maximum likelihood estimates for dirichlet.
 
     dna_l   -- list of probin.dna.DNA instances
+
+    Keyword Arguments:
+    algorithm -- choose numerical optimization algorithm, e.g. "bfgs"
 
     """
     kmer_hash_count = dna_l[0].kmer_hash_count
@@ -22,8 +25,10 @@ def fit_nonzero_parameters_full_output(dna_l):
     # Total number of kmers for each contig
     M = np.sum(pcs,axis=1)
     alpha_bounds = [(0.0,None)]*kmer_hash_count
-    alpha_fit = fmin_tnc(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds)
-    # alpha_fit = fmin_l_bfgs_b(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds)
+    if algorithm == "bfgs":
+        alpha_fit = fmin_l_bfgs_b(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds)
+    else:
+        alpha_fit = fmin_tnc(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds)    
     return alpha_fit
 
 def sophisticated_alpha0(pcs,kmer_hash_count):

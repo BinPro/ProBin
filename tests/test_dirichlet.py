@@ -2,7 +2,7 @@
 from probin.model.composition import dirichlet as model
 from probin import dna
 import fileinput
-from nose.tools import assert_almost_equal, assert_equal
+from nose.tools import assert_almost_equal, assert_equal, assert_not_equal
 from Bio import SeqIO
 from collections import Counter
 import numpy as np
@@ -127,3 +127,15 @@ class TestDirichlet(object):
         assert_almost_equal(log_prob3/10000.0,-0.517, places = 2)
         log_prob4 = model.log_probability(s2,parameters2)
         assert_almost_equal(log_prob4/10000.0,-0.483, places = 2)
+
+    def test_choose_algorithm_fit_parameters(self):
+        c = dna.DNA(id="ADADAD", seq='ACTTTAAACCC')
+        c.calculate_signature()
+        d = dna.DNA(id="ADADAD", seq='ACTTTACGAACCC')
+        d.calculate_signature()
+        dna_l = [c,d]
+        
+        alpha_fit_tnc = model.fit_nonzero_parameters([c,d])        
+        alpha_fit_bfgs = model.fit_nonzero_parameters([c,d],algorithm="bfgs")
+
+        assert_not_equal(sum(alpha_fit_tnc),sum(alpha_fit_bfgs))
