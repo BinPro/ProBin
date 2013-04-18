@@ -20,8 +20,10 @@ class TestDirichlet(object):
     def test_fit_nonzero_parameters(self):
         c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
         c.calculate_signature()
+        d = dna.DNA(id="ADADAD",seq='AAACCCCTATC')
+        d.calculate_signature()
         
-        alpha_fit = model.fit_nonzero_parameters([c])
+        alpha_fit = model.fit_nonzero_parameters([c,d])
         # Produce output of correct length
         assert_equal(len(alpha_fit), 136)
         # Produce strictly positive parameters
@@ -32,17 +34,18 @@ class TestDirichlet(object):
         # http://en.wikipedia.org/wiki/File:Beta-binomial_distribution_pmf.png
         c = dna.DNA(id="ADADAD",seq='ACTTTAAACCC')
 
-        pseudo_counts = Counter({0: 6, 1: 4})
+        signature = np.array([6,4])
 
         alpha = np.array([600,400])
-        p = model.log_probability_test(pseudo_counts.values(),alpha)
+        p = model.log_probability_test(signature,alpha)
         # 10 choose 6 = 210
-        assert_almost_equal(p+np.log(210),-1.38799, places=3)
+        assert_almost_equal(p + np.log(210),-1.38799, places=3)
 
-        pseudo_counts_m = np.zeros((1,2))
-        pseudo_counts_m[0,:] = np.array([6,4])
 
-        p2 = model.neg_log_probability_l(alpha,pseudo_counts_m)
+        signature_m = np.zeros((1,2))
+        signature_m[0,:] = np.array([6,4])
+
+        p2 = model.neg_log_probability_l(alpha,signature_m,1,10)
         assert_almost_equal(-p2+np.log(210),-1.38799, places=3)
 
 
@@ -52,11 +55,17 @@ class TestDirichlet(object):
         d = dna.DNA(id="ADADAD", seq='ACTTTACGAACCC')
         d.calculate_signature()
         dna_l = [c,d]
-        kmer_hash_count = c.kmer_hash_count
-        alpha0, pcs = model._all_pseudo_counts(dna_l, kmer_hash_count)
-        alpha = [3.0]*kmer_hash_count
-        p = model.neg_log_probability_l(alpha,pcs)
-        assert_almost_equal(p,1465.29056,places=4)
+        alpha = [3.0]*c.kmer_hash_count
+
+        sig_mat = np.zeros((2,c.kmer_hash_count))
+        for key,cnt in c.signature.iteritems():
+            sig_mat[0,key] += cnt
+
+        for key,cnt in d.signature.iteritems():
+            sig_mat[1,key] += cnt
+
+        p = model.neg_log_probability_l(alpha,sig_mat,2,np.array([10,8]))
+        assert_almost_equal(p,88.31776,places=4)
         
 
     def test_log_probability_order(self):
@@ -109,12 +118,12 @@ class TestDirichlet(object):
         # numerical optimization for finding the parameters
         s1 = dna_c1g1
         log_prob1 = model.log_probability(s1,parameters1)
-        assert_almost_equal(log_prob1/10000.0, -0.526, places = 1)
+        assert_almost_equal(log_prob1/10000.0, -0.450, places = 1)
         log_prob2 = model.log_probability(s1,parameters2)
-        assert_almost_equal(log_prob2/10000.0,-0.5358, places = 2)
+        assert_almost_equal(log_prob2/10000.0,-0.4676, places = 2)
 
         s2 = dna_c1g2
         log_prob3 = model.log_probability(s2,parameters1)
-        assert_almost_equal(log_prob3/10000.0,-0.577, places = 2)
+        assert_almost_equal(log_prob3/10000.0,-0.517, places = 2)
         log_prob4 = model.log_probability(s2,parameters2)
-        assert_almost_equal(log_prob4/10000.0,-0.55, places = 2)
+        assert_almost_equal(log_prob4/10000.0,-0.483, places = 2)
