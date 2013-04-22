@@ -23,12 +23,12 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter):
 
         centroids = _maximization(contigs, model, clusters, centroids.shape)
         
-        curr_clustering_prob = _evaluate_clustering(centroids, clusters, model)
+        curr_clustering_prob = _evaluate_clustering(model, clusters, centroids)
         
         if (curr_clustering_prob <= clustering_prob):
             cluster_different = False
             if (curr_clustering_prob < clustering_prob):
-                print>>sys.stderr, "Clustering got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
+                print>>sys.stderr, "Kmeans got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
         clustering_prob = curr_clustering_prob
         max_iter -= 1
     if not max_iter:
@@ -76,7 +76,7 @@ def _generate_kplusplus(contigs,model,c_count,c_dim):
         centroids[centroids_index,:] = model.fit_nonzero_parameters([contig])
     return centroids
 
-def _evaluate_clustering(centroids,clusters, model):
+def _evaluate_clustering(model, clusters, centroids):
     cluster_prob = 0
     for i,cluster in enumerate(clusters):
         cluster_prob += sum([model.log_probability(contig,centroids[i]) for contig in cluster])

@@ -57,7 +57,7 @@ class TestKmeans(object):
         
         (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,2,centroids)
         
-        assert_equal(kmeans._evaluate_clustering(correct_centroids,correct_clusters,multinomial),clust_prob)
+        assert_equal(kmeans._evaluate_clustering(multinomial, correct_clusters, correct_centroids),clust_prob)
 
                         
         
@@ -69,7 +69,7 @@ class TestKmeans(object):
 
         (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,2,centroids)
         
-        assert_equal(kmeans._evaluate_clustering(centroids,correct_clusters,multinomial),clust_prob)
+        assert_equal(kmeans._evaluate_clustering(multinomial, correct_clusters, centroids),clust_prob)
 
     def test_cluster_semi_center(self):
         centroids = np.zeros((2,dna.DNA.kmer_hash_count))
@@ -82,6 +82,6 @@ class TestKmeans(object):
         correct_centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2], self.contigs[3]])
         correct_clusters = kmeans._expectation(self.contigs,multinomial,correct_centroids)        
         
-        assert_equal(kmeans._evaluate_clustering(correct_centroids,correct_clusters,multinomial),clust_prob)
+        assert_equal(kmeans._evaluate_clustering(multinomial, correct_clusters, correct_centroids),clust_prob)
         
         

@@ -5,10 +5,10 @@ correlation between many samples."""
 import fileinput
 import sys
 import os
+from itertools import izip
 from argparse import ArgumentParser
 
 from Bio import SeqIO
-from datetime import datetime
 
 from probin.dna import DNA
 from probin.binning import statistics as stats
@@ -36,12 +36,20 @@ def print_clustering_result(clusters, cluster_evaluation, centroids, arguments):
 def _get_contigs(arg_files):
     try:
         handle = fileinput.input(arg_files)
-        contigs = [DNA(x.id, x.seq.tostring().upper(),phylo=x.description.split(" ",1)[1], calc_sign=True) for x in list(SeqIO.parse(handle,"fasta"))]
-    except IOError as error:
+        seqs = list(SeqIO.parse(handle,"fasta"))
+    except IOError as error:    
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
     finally:
         handle.close()
+
+    contigs = [DNA(x.id, x.seq.tostring().upper(), calc_sign=True) for x in seqs]
+    try:
+        for contig,seq in izip(contigs,seqs):
+            contig.phylo = seq.description.split(" ",1)[1]
+    except Exception as error:
+        print >> sys.stderr, "No phylo information %s, message: %s" % (error.filename,error.message)
+
     return contigs
 
 if __name__=="__main__":
@@ -88,13 +96,7 @@ if __name__=="__main__":
         print >> sys.stderr, "parameters: %s" %(args)
     
     (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
-    s = {"date":str(datetime.now()),"nrclust":args.cluster_count}
-    for i,m in enumerate(stats.confusion_matrix(contigs,clusters)):
-        m.to_csv("/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/{date}ConfusionMatrix-{nrclust}clusters.csv".format(**s))
-    for i,m in enumerate(stats.recall(contigs,clusters)):
-        m.to_csv("/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/{date}Recall-{nrclust}clusters.csv".format(**s))
-    for i,m in  enumerate(stats.precision(contigs,clusters)):
-        m.to_csv("/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/{date}Precision-{nrclust}clusters.csv".format(**s))
-    print clust_prob    
+    stats.get_statistics(contigs,clusters,args.cluster_count,"/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/")
+    print clust_prob
     #print_clustering_result(clusters,clust_prob,centroids,args)
     
