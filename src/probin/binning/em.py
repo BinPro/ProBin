@@ -32,6 +32,7 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat):
             cluster_different = False
             if (curr_clustering_prob < clustering_prob):
                 print>>sys.stderr, "EM got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
+            break
         clustering_prob = curr_clustering_prob
         max_iter -= 1
         print max_iter
@@ -39,6 +40,7 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat):
         print>>sys.stderr,"Finished maximum iteration"
     clusters = [set() for _ in range(cluster_count)]
     [clusters[i].add(contig) for (i,contig) in zip(expected_clustering.argmax(axis=1),contigs)]
+    print>>sys.stderr,"Max clust prob: {0}".format(clustering_prob)
     return (clusters, clustering_prob, centroids)
 
 def _expectation(contigs, model, centroids,expected_cluster_freq):
@@ -55,10 +57,10 @@ def _maximization(contigs, model,centroids, expected_clustering):
         centroids[i,:] = model.fit_nonzero_parameters(contigs,expected_clustering=exp_cluster)
     return centroids
     
-def _evaluate_clustering(centroids,contigs, model, expected_cluster_freq):
+def _evaluate_clustering(centroids,contigs, model, expected_clustering):
     cluster_prob = 0
-    for centroid in centroids:
-        cluster_prob += np.sum([model.log_probability(contig,centroid) for contig in contigs])
+    for (centroid,exp_clust) in izip(centroids,expected_clustering.T):
+        cluster_prob += np.sum(np.array([model.log_probability(contig,centroid) for contig in contigs]) * exp_clust)
     return cluster_prob
 
 
