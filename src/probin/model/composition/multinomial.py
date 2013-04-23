@@ -3,7 +3,6 @@
 from scipy.special import gammaln
 import numpy as np
 from collections import Counter
-from itertools import izip
 
 def fit_parameters(dna_l):
     sig = Counter()
