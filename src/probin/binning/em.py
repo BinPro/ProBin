@@ -47,20 +47,20 @@ def _expectation(contigs, model, centroids,expected_cluster_freq):
     expected_clustering = np.zeros((len(contigs),len(centroids)))
 
     for i,contig in enumerate(contigs):
-        expected_clustering[i,:] = [model.log_probability(contig,centroid) for centroid in centroids]
+        expected_clustering[i] = [model.log_probability(contig,centroid) for centroid in centroids]
     max_lq = np.max(expected_clustering,axis=1,keepdims=True)
-    expected_clustering[:] = np.exp(expected_clustering - max_lq) * expected_cluster_freq
+    expected_clustering = np.exp(expected_clustering - max_lq) * expected_cluster_freq
     return expected_clustering / np.sum(expected_clustering,axis=1,keepdims=True)
 
 def _maximization(contigs, model,centroids, expected_clustering):
     for i,exp_cluster in enumerate(expected_clustering.T):
-        centroids[i,:] = model.fit_nonzero_parameters(contigs,expected_clustering=exp_cluster)
+        centroids[i] = model.fit_nonzero_parameters(contigs,expected_clustering=exp_cluster)
     return centroids
     
 def _evaluate_clustering(centroids,contigs, model, expected_clustering):
     cluster_prob = 0
     for (centroid,exp_clust) in izip(centroids,expected_clustering.T):
-        cluster_prob += np.sum(np.array([model.log_probability(contig,centroid) for contig in contigs]) * exp_clust)
+        cluster_prob += np.sum(np.array([model.log_probability(contig,centroid) for contig in contigs]) + np.log(exp_clust))
     return cluster_prob
 
 
