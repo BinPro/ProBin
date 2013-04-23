@@ -5,6 +5,16 @@ Calculate recall and precision for clustering algorithms. Clustering
 """
 from pandas import DataFrame, Series, pivot_table
 import numpy as np
+from datetime import datetime
+
+def get_statistics(contigs,clusters,cluster_count,out_path):
+    s = {"date":str(datetime.now()),"nrclust":cluster_count,"path":out_path}
+    for i,m in enumerate(confusion_matrix(contigs,clusters)):
+        m.to_csv("{path}/{date}ConfusionMatrix-{nrclust}clusters.csv".format(**s))
+    for i,m in enumerate(recall(contigs,clusters)):
+        m.to_csv("{path}/{date}Recall-{nrclust}clusters.csv".format(**s))
+    for i,m in  enumerate(precision(contigs,clusters)):
+        m.to_csv("{path}//{date}Precision-{nrclust}clusters.csv".format(**s))
     
 def confusion_matrix(contigs,clustering,levels=["family","genus","species"]):
     _get_phylo(contigs)
