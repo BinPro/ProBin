@@ -5,19 +5,22 @@ Calculate recall and precision for clustering algorithms. Clustering
 """
 from pandas import DataFrame, Series, pivot_table
 import numpy as np
-from datetime import datetime
+from itertools import izip
 
-def get_statistics(contigs,clusters,cluster_count,out_path):
-    s = {"date":str(datetime.now()),"nrclust":cluster_count,"path":out_path}
-    for i,m in enumerate(confusion_matrix(contigs,clusters)):
-        m.to_csv("{path}/{date}ConfusionMatrix-{nrclust}clusters.csv".format(**s))
-    for i,m in enumerate(recall(contigs,clusters)):
-        m.to_csv("{path}/{date}Recall-{nrclust}clusters.csv".format(**s))
-    for i,m in  enumerate(precision(contigs,clusters)):
-        m.to_csv("{path}//{date}Precision-{nrclust}clusters.csv".format(**s))
-    
+def get_statistics(contigs,clusters,output):
+    _get_phylo(contigs)    
+    cm = confusion_matrix(contigs,clusters)
+    rc = recall(contigs,clusters)
+    pr = precision(contigs,clusters)
+    for c,r,p in izip(cm,rc,pr):
+        print>>output,"#{0}".format("="*20)
+        c.to_csv(output)
+        print>>output,"#{0}".format("-"*20)
+        r.to_csv(output)
+        print>>output,"#{0}".format("-"*20)
+        p.to_csv(output)
+
 def confusion_matrix(contigs,clustering,levels=["family","genus","species"]):
-    _get_phylo(contigs)
     df = _create_dataframe(contigs,clustering)
     cm = [pivot_table(df,rows=levels[:i+1],cols=["cluster"],aggfunc=np.sum) for i in xrange(len(levels))]
     return cm
