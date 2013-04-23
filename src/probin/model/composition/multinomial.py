@@ -3,6 +3,7 @@
 from scipy.special import gammaln
 import numpy as np
 from collections import Counter
+from itertools import izip
 
 def fit_parameters(dna_l):
     sig = Counter()
@@ -13,13 +14,15 @@ def fit_parameters(dna_l):
     par /= np.sum(par)
     return par
 
-def fit_nonzero_parameters(dna_l):
-    pseudo_sig = np.ones(dna_l[0].kmer_hash_count)
-    sig = Counter()
-    [sig.update(part.signature) for part in dna_l]
-    for key,cnt in sig.iteritems():
-        pseudo_sig[key] += cnt
+def fit_nonzero_parameters(dna_l,expected_clustering=None):
+    pseudo_sig = np.zeros((len(dna_l),dna_l[0].kmer_hash_count))
+    for i,dna in enumerate(dna_l):
+        pseudo_sig[i,:] = np.fromiter(dna.pseudo_counts,dtype=np.int)
+    if expected_clustering == None:
+        expected_clustering = np.ones((1,len(dna_l)))
+    pseudo_sig = expected_clustering.dot(pseudo_sig)
     pseudo_sig /= np.sum(pseudo_sig)
+    
     return pseudo_sig
 
 def log_probability(seq, prob_vector):
