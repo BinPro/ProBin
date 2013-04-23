@@ -6,6 +6,12 @@ from nose.tools import assert_almost_equal, assert_equal
 from Bio import SeqIO
 from collections import Counter
 import numpy as np
+import os
+import sys
+
+file_path = os.path.realpath(__file__)
+data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
+sys.stderr.write(str(data_path)+'\n')
 
 class TestMultinomial(object):
     ## "Constants"
@@ -16,7 +22,7 @@ class TestMultinomial(object):
         reload(dna)
     # testing function: log_probability
     def test_uniform_one_contig_prob(self):
-        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
+        f = fileinput.input(os.path.join(data_path,"bambus2.scaffold.linear.fasta.one_contig"))
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -31,7 +37,7 @@ class TestMultinomial(object):
     
     # testing function: calculate_signatures
     def test_signatures_one_contig_basic(self):
-        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
+        f = fileinput.input(os.path.join(data_path,"bambus2.scaffold.linear.fasta.one_contig"))
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -42,7 +48,7 @@ class TestMultinomial(object):
     
     # testing function: fit_parameters
     def test_parameters_one_contig_basic(self):
-        f = fileinput.input("data/bambus2.scaffold.linear.fasta.one_contig")
+        f = fileinput.input(os.path.join(data_path,"bambus2.scaffold.linear.fasta.one_contig"))
         c = list(SeqIO.parse(f,"fasta"))
         f.close()
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
@@ -58,7 +64,7 @@ class TestMultinomial(object):
         assert_equal((calculated_parameters==correct_parameters).all(),True)
     
     def test_signaturs_large_genome(self):
-        f = fileinput.input("data/8M_genome.fna")
+        f = fileinput.input(os.path.join(data_path,"8M_genome.fna"))
         c= list(SeqIO.parse(f,"fasta"))
         f.close
         dna_c = dna.DNA(id = c[0].id, seq = str(c[0].seq))
