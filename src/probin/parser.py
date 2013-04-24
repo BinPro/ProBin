@@ -30,6 +30,11 @@ def main_parser():
                                    choices=['masmvali','bam'],
                                    default='bam',
                                    help='specify format of input files, default bam.')
+    parser_preprocess.add_argument('-o', '--output', 
+        help='specify the output file.  The default is stdout')
+    parser_preprocess.add_argument('-c', '--contigs', 
+        help='specify the file containing the contigs.')
+    
     parser_preprocess.set_defaults(script='preprocess')
 
     return parser

@@ -13,6 +13,7 @@ from Bio import SeqIO
 from probin.dna import DNA
 from probin.binning import statistics as stats
 from probin.parser import main_parser
+from probin.preprocess import main_preprocess
 
 def main(contigs,model,clustering,cluster_count,verbose):
     uniform_prob = {}
@@ -89,6 +90,13 @@ if __name__=="__main__":
     #print_clustering_result(clusters,clust_prob,centroids,args)
     
     elif args.script == 'preprocess':
-        pass
+        if args.output:
+            args.output = open(args.output,'w+')
+        else:
+            args.output = sys.stdout
+        if not args.contigs:
+            print "Contigs file not correctly supplied, will now exit"
+            sys.exit(-1)
+        main_preprocess(args)
     else:
         pass
