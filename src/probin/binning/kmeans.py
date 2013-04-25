@@ -2,7 +2,6 @@
 """Cluster DNA based on k-means algorithm with fixed number of clusters"""
 from probin.dna import DNA
 import numpy as np
-from collections import Counter
 import sys
 
 def cluster(contigs,model,cluster_count,centroids=None,max_iter=100, repeat=10):
@@ -49,6 +48,7 @@ def _maximization(contigs, model, clusters, centroids_shape):
         if not clust:
             select_as_centroid = np.random.randint(0,len(contigs))
             new_centroid = model.fit_nonzero_parameters([contigs[select_as_centroid]])
+            print>>sys.stderr,"cluster {0} was empty in kmeans".format(clust_ind)
         else:
             new_centroid = model.fit_nonzero_parameters(list(clust))
         new_centroids[clust_ind,:] = new_centroid

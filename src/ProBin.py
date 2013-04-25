@@ -23,17 +23,21 @@ def main(contigs,model,clustering,cluster_count,verbose):
     return (clusters,clust_prob,centroids)
 
 
-def print_clustering_result(clusters, cluster_evaluation, centroids, arguments):
-    RESULT=["#Clustering based on parameters: {args}", \
-            "#clustering evaluation: {clust_prob}", \
-            "#<Centroids>", \
-            "#{centroids}", \
+def print_clustering_result(clusters, cluster_evaluation, centroids, arguments, output):
+    RESULT=["#{divide}",
+            "#Clustering based on parameters: {args}",
+            "#clustering evaluation: {clust_prob}",
+            "#<Centroids>",
+            "{centroids}",
             "{clusters}"]
+    repr_centroids = ["#Centroid {0},{1}".format(i,",".join(map(str,centroid))) for i,centroid in enumerate(centroids)]
+    
     c = [">Cluster {0}{1}{2}".format(i,os.linesep, os.linesep.join(map(str,cluster))) for i,cluster in enumerate(clusters)]
-    params =   {"args":arguments, "clust_prob":cluster_evaluation,\
+    params =   {"args":arguments, "clust_prob":cluster_evaluation,
                 "clusters":os.linesep.join(c),
-                "centroids":" ".join(map(str,centroids[i]))}
-    print RESULT.join(os.linesep).format(**params)
+                "centroids":os.linesep.join(repr_centroids),
+                "divide":"="*20}
+    print>>output, os.linesep.join(RESULT).format(**params)
 
 def _get_contigs(arg_files):
     try:
@@ -50,7 +54,7 @@ def _get_contigs(arg_files):
         for contig,seq in izip(contigs,seqs):
             contig.phylo = seq.description.split(" ",1)[1]
     except Exception as error:
-        print >> sys.stderr, "No phylo information %s, message: %s" % (error.filename,error.message)
+        print >> sys.stderr, "No phylo information %s, message: %s" % (error,error.message)
 
     return contigs
 
@@ -70,8 +74,11 @@ if __name__=="__main__":
             print "Failed to load module {0}. Will now exit".format(args.algorithm)
             sys.exit(-1)
         
+
         if args.output and args.output != '-':
-            sys.stdout = open(args.output, 'w')
+            output = open(args.output, 'w')
+        else:
+            output = sys.stdout
     
         if args.verbose:
             print >> sys.stderr, "parameters: %s" % (args)
@@ -83,12 +90,16 @@ if __name__=="__main__":
 
         if args.verbose:
             print >> sys.stderr, "parameters: %s" %(args)
-    
+
         (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
-        stats.get_statistics(contigs,clusters,args.cluster_count,"/home/binni/MasterProject/CorrelationBinning/experiments/2013-04-12_clusterring_metrics/")
-        print clust_prob
-    #print_clustering_result(clusters,clust_prob,centroids,args)
+        try:
+            stats.get_statistics(contigs,clusters,output)
+        except AttributeError:
+            print >> sys.stderr, "Phylo attribute not available"
     
+        print_clustering_result(clusters,clust_prob,centroids,args,output)
+        output.close()
+
     elif args.script == 'preprocess':
         if args.output:
             args.output = open(args.output,'w+')
@@ -100,3 +111,4 @@ if __name__=="__main__":
         main_preprocess(args)
     else:
         pass
+

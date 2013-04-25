@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 from probin.model.composition import multinomial as ml
 from probin import dna
-import fileinput
 from nose.tools import assert_almost_equal, assert_equal
 from Bio import SeqIO
 from collections import Counter
 import numpy as np
 import os
 import sys
+import fileinput
 
 file_path = os.path.realpath(__file__)
 data_path = os.path.abspath(os.path.join(file_path,"..","..","data/"))
-sys.stderr.write(str(data_path)+'\n')
 
 class TestMultinomial(object):
     ## "Constants"
@@ -81,6 +80,16 @@ class TestMultinomial(object):
         true_dist[0] = 2
         true_dist /= np.sum(true_dist)
         assert_equal((true_dist== distribution).all(),True)
+
+    def test_fit_nonzero_parameters_multiple_contigs(self):
+        c = dna.DNA(id="hej",seq="AAAA",calc_sign=True)
+        d = dna.DNA(id="ja",seq="AAAA",calc_sign=True)
+        distribution = ml.fit_nonzero_parameters([c,d])
+        true_dist = np.ones(136)
+        true_dist[0] = 3
+        true_dist /= np.sum(true_dist)
+        assert_equal((true_dist== distribution).all(),True)
+        
 
     def test_log_probability(self):
         dna_c = dna.DNA(id="hej",seq="AAAA")
