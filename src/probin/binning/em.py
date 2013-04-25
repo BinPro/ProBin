@@ -4,15 +4,15 @@ import numpy as np
 from itertools import izip
 import sys
 
-def cluster(contigs,model,cluster_count,centroids=None,max_iter=100, repeat=10,):
+def cluster(contigs,model,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
     
     for run in xrange(repeat):
-        (clusters, clustering_prob, new_centroids) = _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat)
+        (clusters, clustering_prob, new_centroids) = _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat,epsilon)
         (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, new_centroids)],key=lambda x: x[1])
     return (max_clusters, max_clustering_prob, max_centroids)
     
-def _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat):
+def _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat,epsilon):
     if not centroids:
         from probin.binning import kmeans
         (clusters,_,centroids) = kmeans.cluster(contigs,model,cluster_count,None,max_iter,repeat)
@@ -28,7 +28,7 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat):
         expected_cluster_freq   = expected_clustering.sum(axis=0,keepdims=True)
         curr_clustering_prob    = _evaluate_clustering(centroids, contigs, model,expected_cluster_freq)
         
-        if (curr_clustering_prob <= clustering_prob):
+        if (np.abs(curr_clustering_prob-clustering_prob) <= epsilon):
             cluster_different = False
             if (curr_clustering_prob < clustering_prob):
                 print>>sys.stderr, "EM got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
