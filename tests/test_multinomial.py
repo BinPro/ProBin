@@ -89,6 +89,7 @@ class TestMultinomial(object):
         true_dist[0] = 3
         true_dist /= np.sum(true_dist)
         assert_equal((true_dist== distribution).all(),True)
+        assert_equal(true_dist.shape,distribution.shape)
         
 
     def test_log_probability(self):
