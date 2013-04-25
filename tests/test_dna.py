@@ -68,7 +68,7 @@ class TestDNA(object):
 
     def test_empty_seq(self):
         c = dna.DNA(id="ADADAD",seq='')
-        assert_equal(bool(c),False)
+        assert_equal(bool(c),True)
          
     
     def test_signature_calculation_is_not_in_constructor(self):
