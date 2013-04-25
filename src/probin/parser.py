@@ -34,6 +34,9 @@ def main_parser():
         help='specify the output file.  The default is stdout')
     parser_preprocess.add_argument('-c', '--contigs', 
         help='specify the file containing the contigs.')
+    parser_preprocess.add_argument('-s', '--strain', action='store_true',
+                                   help="""Use this option if the strain 
+that the reads unambiguosly mapped to should be included in output""")
     
     parser_preprocess.set_defaults(script='preprocess')
 

@@ -25,6 +25,9 @@ def main_preprocess(args):
                                                sep='\t',
                                                index_col=0)
             series_dict[os.path.basename(input_file)] = input_df.unamb_tot_nr_reads
+            if args.strain:
+                series_dict[os.path.basename(input_file)+'_strain'] =
+                input_df.unamb_dominant_strain
         
         df = p.DataFrame(series_dict)
-    df.to_csv(args.output, sep='\t')
+        df.to_csv(args.output, sep='\t')
