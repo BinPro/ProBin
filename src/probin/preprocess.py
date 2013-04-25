@@ -21,13 +21,13 @@ def main_preprocess(args):
     series_dict['contig_length'] = p.Series(contig_lengths,index=contig_ids)
     if args.format == 'masmvali':
         for input_file in args.files:
+            file_base_name = ".".join(os.path.basename(input_file).split(".")[0:-1])
             input_df = p.io.parsers.read_table(input_file,
                                                sep='\t',
                                                index_col=0)
-            series_dict[os.path.basename(input_file)] = input_df.unamb_tot_nr_reads
+            series_dict[file_base_name] = input_df.unamb_tot_nr_reads
             if args.strain:
-                series_dict[os.path.basename(input_file)+'_strain'] =
-                input_df.unamb_dominant_strain
+                series_dict[file_base_name+'_strain'] = input_df.unamb_dominant_strain
         
         df = p.DataFrame(series_dict)
         df.to_csv(args.output, sep='\t')
