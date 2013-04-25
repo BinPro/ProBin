@@ -16,12 +16,12 @@ def fit_parameters(dna_l):
 def fit_nonzero_parameters(dna_l,expected_clustering=None):
     pseudo_sig = np.zeros((len(dna_l),dna_l[0].kmer_hash_count))
     for i,dna in enumerate(dna_l):
-        pseudo_sig[i,:] = np.fromiter(dna.pseudo_counts,dtype=np.int)
+        pseudo_sig[i,:] = np.fromiter(dna.pseudo_counts,dtype=np.int) - 1 
     if expected_clustering == None:
         expected_clustering = np.ones((1,len(dna_l)))
     pseudo_sig = expected_clustering.dot(pseudo_sig)
+    pseudo_sig += 1
     pseudo_sig /= np.sum(pseudo_sig)
-    
     return pseudo_sig
 
 def log_probability(seq, prob_vector):
