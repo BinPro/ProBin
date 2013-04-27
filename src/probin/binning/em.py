@@ -40,7 +40,6 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,repeat,epsilo
         print>>sys.stderr,"Finished maximum iteration"
     clusters = [set() for _ in range(cluster_count)]
     [clusters[i].add(contig) for (i,contig) in zip(expected_clustering.argmax(axis=1),contigs)]
-    print>>sys.stderr,"Max clust prob: {0}".format(clustering_prob)
     return (clusters, clustering_prob, centroids)
 
 def _expectation(contigs, model, centroids,expected_cluster_freq):

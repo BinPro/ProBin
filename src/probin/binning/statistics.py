@@ -6,6 +6,7 @@ Calculate recall and precision for clustering algorithms. Clustering
 from pandas import DataFrame, Series, pivot_table
 import numpy as np
 from itertools import izip
+from sys import stdout
 
 def get_statistics(contigs,clusters,output):
     _get_phylo(contigs)    
