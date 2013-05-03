@@ -4,13 +4,13 @@ from probin.dna import DNA
 import numpy as np
 import sys
 
-def cluster(contigs,model,cluster_count,centroids=None,max_iter=100, repeat=10):
+def cluster(contigs,model,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)    
     for run in xrange(repeat):
-        (clusters, clustering_prob, centroids) = _clustering(contigs, model, cluster_count ,centroids, max_iter)
+        (clusters, clustering_prob, centroids) = _clustering(contigs, model, cluster_count ,centroids, max_iter,epsilon)
         (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, centroids)],key=lambda x: x[1])
     return (max_clusters, max_clustering_prob, max_centroids)
-def _clustering(contigs, model, cluster_count ,centroids, max_iter):
+def _clustering(contigs, model, cluster_count ,centroids, max_iter,epsilon):
     if centroids is None:
        centroids = _generate_kplusplus(contigs,model,cluster_count,DNA.kmer_hash_count)
     clustering_prob = -np.inf
@@ -23,15 +23,15 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter):
         centroids = _maximization(contigs, model, clusters, centroids.shape)
         
         curr_clustering_prob = _evaluate_clustering(model, clusters, centroids)
-        
-        if (curr_clustering_prob <= clustering_prob):
+        print 1-curr_clustering_prob/clustering_prob
+        if (1-curr_clustering_prob/clustering_prob <= epsilon):
             cluster_different = False
             if (curr_clustering_prob < clustering_prob):
                 print>>sys.stderr, "Kmeans got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
         clustering_prob = curr_clustering_prob
         max_iter -= 1
     if not max_iter:
-        print>>sys.stderr,"Finished maximum iteration"
+        print>>sys.stderr,"Kmeans Finished maximum iteration"
     return (clusters, clustering_prob, centroids)
 
 def _expectation(contigs, model, centroids):
