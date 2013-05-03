@@ -16,10 +16,8 @@ def get_statistics(contigs,clusters,output):
     for c,r,p in izip(cm,rc,pr):
         print>>output,"#{0}".format("="*20)
         c.to_csv(output)
-        print>>output,"#{0}".format("-"*20)
-        r.to_csv(output)
-        print>>output,"#{0}".format("-"*20)
-        p.to_csv(output)
+        r.recall.to_csv(output)
+        p.precision.to_csv(output)
 
 def confusion_matrix(contigs,clustering,levels=["family","genus","species"]):
     df = _create_dataframe(contigs,clustering)
