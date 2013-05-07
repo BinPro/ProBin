@@ -23,7 +23,7 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,epsilon):
         centroids = _maximization(contigs, model, clusters, centroids.shape)
         
         curr_clustering_prob = _evaluate_clustering(model, clusters, centroids)
-        print 1-curr_clustering_prob/clustering_prob
+        
         if (1-curr_clustering_prob/clustering_prob <= epsilon):
             cluster_different = False
             if (curr_clustering_prob < clustering_prob):
