@@ -19,7 +19,7 @@ def main(contigs,model,clustering,cluster_count,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=30, repeat=2,epsilon=0.01)
+    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=0.02)
     return (clusters,clust_prob,centroids)
 
 
