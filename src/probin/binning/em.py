@@ -16,17 +16,19 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,epsilon):
     if not centroids:
         from probin.binning import kmeans
         (clusters,_,centroids) = kmeans.cluster(contigs,model,cluster_count,None,max_iter=3,repeat=2)
-        expected_cluster_freq = np.ones((1,cluster_count))/cluster_count
+        clustering             = kmeans._expectation(contigs,model,centroids)
+        expected_cluster       = np.array([len(exp) for exp in clustering],dtype=float)
+        expected_cluster_freq  = expected_cluster / expected_cluster.sum(axis=0,keepdims=True)
     else:
         clusters = _expectation(contigs,centroids)
     clustering_prob = -np.inf
+    
     while (max_iter != 0):
 
         expected_clustering     = _expectation(contigs,model,centroids, expected_cluster_freq)
         centroids               = _maximization(contigs, model, centroids, expected_clustering,)
         expected_cluster_freq   = expected_clustering.sum(axis=0,keepdims=True)
         curr_clustering_prob    = _evaluate_clustering(centroids, contigs, model,expected_cluster_freq)
-        
         if (1 - curr_clustering_prob / clustering_prob <= epsilon):
             if (curr_clustering_prob < clustering_prob):
                 print>>sys.stderr, "EM got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
@@ -57,6 +59,6 @@ def _maximization(contigs, model,centroids, expected_clustering):
 
 def _evaluate_clustering(centroids,contigs, model, expected_clustering_freq):
     cluster_prob = 0
-    for (centroid,exp_clust) in izip(centroids,expected_clustering_freq.T):
+    for (centroid,exp_clust) in izip(centroids,expected_clustering_freq.flatten()):
         cluster_prob += np.sum(np.array([model.log_probability(contig,centroid) for contig in contigs]) + np.log(exp_clust))
     return cluster_prob
