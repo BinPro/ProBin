@@ -17,8 +17,8 @@ def _clustering(contigs, model, cluster_count ,centroids, max_iter,epsilon):
         from probin.binning import kmeans
         (clusters,_,centroids) = kmeans.cluster(contigs,model,cluster_count,None,max_iter=3,repeat=2)
         clustering             = kmeans._expectation(contigs,model,centroids)
-        expected_cluster       = np.array([len(exp) for exp in clustering],dtype=float)
-        expected_cluster_freq  = expected_cluster / expected_cluster.sum(axis=0,keepdims=True)
+        expected_cluster_freq  = np.array([len(exp) for exp in clustering],dtype=float)
+        
     else:
         clusters = _expectation(contigs,centroids)
     clustering_prob = -np.inf
