@@ -6,7 +6,6 @@ import fileinput
 import sys
 import os
 from itertools import izip
-from argparse import ArgumentParser
 
 from Bio import SeqIO
 
@@ -19,7 +18,7 @@ def main(contigs,model,clustering,cluster_count,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=0.02)
+    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=0.02)
     return (clusters,clust_prob,centroids)
 
 
