@@ -31,7 +31,17 @@ class DNA(object):
             self.calculate_signature()
 
     def __repr__(self):
-        return "{0}".format(self.id)        
+        return "{0}".format(self.id)
+
+    def __cmp__(self,other):
+        if self.id < other.id:
+            return -1
+        elif self.id == other.id:
+            return 0
+        else:
+            return 1
+    def __hash__(self):
+        return hash(self.id)
     
     @classmethod
     def generate_kmer_hash(cls,kmer_len):

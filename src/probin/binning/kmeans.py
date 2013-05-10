@@ -3,16 +3,20 @@
 from probin.dna import DNA
 import numpy as np
 import sys
+from random import randint
+from os import getpid
 
 def cluster(contigs, log_probability_func,fit_nonzero_parameters_func ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):
+    
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)    
     for run in xrange(repeat):
         (clusters, clustering_prob, centroids) = _clustering(contigs,  log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon)
         (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, centroids)],key=lambda x: x[1])
     return (max_clusters, max_clustering_prob, max_centroids)
 def _clustering(contigs,  log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon):
+    rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
     if centroids is None:
-       centroids = _generate_kplusplus(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count)
+       centroids = _generate_kplusplus(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
     clustering_prob = -np.inf
     cluster_different = True
     
@@ -20,7 +24,7 @@ def _clustering(contigs,  log_probability_func,fit_nonzero_parameters_func, clus
 
         clusters = _expectation(contigs, log_probability_func, centroids)
 
-        centroids = _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids.shape)
+        centroids = _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids.shape,rs)
         
         curr_clustering_prob = _evaluate_clustering(log_probability_func, clusters, centroids)
         
@@ -42,11 +46,11 @@ def _expectation(contigs, log_probability_func, centroids):
         clusters[clust_ind].add(contig)
     return clusters
 
-def _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids_shape):
+def _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids_shape,rs):
     new_centroids = np.zeros(centroids_shape)
     for clust_ind ,clust in enumerate(clusters):
         if not clust:
-            select_as_centroid = np.random.randint(0,len(contigs))
+            select_as_centroid = rs.randint(0,len(contigs))
             new_centroid = fit_nonzero_parameters_func([contigs[select_as_centroid]])
             print>>sys.stderr,"cluster {0} was empty in kmeans".format(clust_ind)
         else:
@@ -54,22 +58,22 @@ def _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids_shap
         new_centroids[clust_ind,:] = new_centroid
     return new_centroids
 
-def _generate_centroids(c_count,c_dim):
-    centroids = np.random.rand(c_count,c_dim)
+def _generate_centroids(c_count,c_dim,rs):
+    centroids = rs.rand(c_count,c_dim)
     centroids /= np.sum(centroids,axis=1,keepdims=True)
     return centroids
 
-def _generate_kplusplus(contigs, log_probability_func,fit_nonzero_parameters_func,c_count,c_dim):
+def _generate_kplusplus(contigs, log_probability_func,fit_nonzero_parameters_func,c_count,c_dim,rs):
     contigs_ind = range(len(contigs))
     centroids = np.zeros((c_count,c_dim))
-    contig_ind = np.random.randint(0,len(contigs_ind))
+    contig_ind = rs.randint(0,len(contigs_ind))
     contigs_ind.remove(contig_ind)
     centroids[0,:] = fit_nonzero_parameters_func([contigs[contig_ind]])
     for centroids_index in xrange(1,c_count):
         prob = {}
         for contig_ind in contigs_ind:
             sum_prob = sum([log_probability_func(contigs[contig_ind],centroid) for centroid in centroids[:centroids_index]])
-            prob[np.random.random()*sum_prob] = contig_ind
+            prob[rs.random_sample()*sum_prob] = contig_ind
         furthest = min(prob)
         contig = contigs[prob[furthest]]
         contigs_ind.remove(prob[furthest])

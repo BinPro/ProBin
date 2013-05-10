@@ -7,18 +7,18 @@ from multiprocessing import Pool, cpu_count
 
 def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
+    params = [(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
+    pool = Pool(processes=cpu_count()*2)
+    results = pool.map(_clustering_wrapper, params)
+    pool.close()
+    return max(results,key=lambda x: x[1])
+
+#    for run in xrange(repeat):
+       
+#        (clusters, clustering_prob, new_centroids) = _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon)
+#        (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, new_centroids)],key=lambda x: x[1])
     
-#    params = ( (contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat))
-#    pool = Pool(processes=cpu_count())
-    
-#    result = pool.map(_clustering_wrapper, params)
-#    return max(result,key=lambda x: x[1])
-    for run in xrange(repeat):
-        
-        (clusters, clustering_prob, new_centroids) = _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon)
-        (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, new_centroids)],key=lambda x: x[1])
-    
-    return (max_clusters, max_clustering_prob, max_centroids)
+#    return (max_clusters, max_clustering_prob, max_centroids)
 
 def _clustering_wrapper(params):
     return _clustering(*params)
