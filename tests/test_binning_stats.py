@@ -26,7 +26,7 @@ class TestBinningStats(object):
 
         for seq in seqs:
             self.contigs.append(dna.DNA(seq.description,seq.seq.tostring(),calc_sign=True))
-        (self.clusters,self.clust_prob,self.centroids) = kmeans.cluster(self.contigs, multinomial, self.cluster_count)
+        (self.clusters,self.clust_prob,self.centroids) = kmeans.cluster(self.contigs, multinomial.log_probability, multinomial.fit_nonzero_parameters, self.cluster_count)
 
     def tearDown(self):
         reload(dna)
