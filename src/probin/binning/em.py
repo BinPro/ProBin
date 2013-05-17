@@ -19,21 +19,22 @@ def _clustering_wrapper(params):
 def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon):
     if not centroids:
         from probin.binning import kmeans
-        (clusters,_,centroids) = kmeans.cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,None,max_iter=3,repeat=1)
-        clustering             = kmeans._expectation(contigs, log_probability_func,centroids)
-        expected_cluster_freq  = np.array([len(exp) for exp in clustering],dtype=float)
+        (clusters,_,centroids)      = kmeans.cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,None,max_iter=3,repeat=1)
+        clustering                  = kmeans._expectation(contigs, log_probability_func,centroids)
+        expected_cluster_freq       = np.array([len(exp) for exp in clustering],dtype=float)
+        clustering_prob, max_log_qs = _evaluate_clustering(centroids, contigs, log_probability_func,expected_cluster_freq)
         
     else:
-        clusters = _expectation(contigs,centroids)
-    clustering_prob = -np.inf
+        print >> sys.stderr, "Not implemented to execute with predefined centroids"
+        sys.exit(-1)
     
     it = 0
     while (max_iter-it != 0):
 
-        expected_clustering     = _expectation(contigs,log_probability_func,centroids, expected_cluster_freq)
-        centroids               = _maximization(contigs, fit_nonzero_parameters_func, centroids, expected_clustering,)
-        expected_cluster_freq   = expected_clustering.sum(axis=0,keepdims=True)
-        curr_clustering_prob    = _evaluate_clustering(centroids, contigs, log_probability_func,expected_cluster_freq)
+        expected_clustering                = _expectation(contigs,log_probability_func,centroids, expected_cluster_freq, max_log_qs)
+        centroids                          = _maximization(contigs, fit_nonzero_parameters_func, centroids, expected_clustering,)
+        expected_cluster_freq              = expected_clustering.sum(axis=0,keepdims=True)
+        curr_clustering_prob, max_log_qs   = _evaluate_clustering(centroids, contigs, log_probability_func,expected_cluster_freq)
         if (1 - (curr_clustering_prob / clustering_prob) <= epsilon):
             if (curr_clustering_prob < clustering_prob):
                 print>>sys.stderr, "EM got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
@@ -49,7 +50,7 @@ def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, clust
     [clusters[i].add(contig) for (i,contig) in zip(expected_clustering.argmax(axis=1),contigs)]
     return (clusters, clustering_prob, centroids)
 
-def _expectation(contigs, log_probability_func, centroids,expected_cluster_freq):
+def _expectation(contigs, log_probability_func, centroids,expected_cluster_freq, max_log_qs):
     expected_clustering = np.zeros((len(contigs),len(centroids)))
 
     for i,contig in enumerate(contigs):
@@ -65,6 +66,16 @@ def _maximization(contigs, fit_nonzero_parameters_func,centroids, expected_clust
 
 def _evaluate_clustering(centroids,contigs, log_probability_func, expected_clustering_freq):
     cluster_prob = 0
-    for (centroid,exp_clust) in izip(centroids,expected_clustering_freq.flatten()):
-        cluster_prob += np.sum(np.array([log_probability_func(contig,centroid) for contig in contigs]) + np.log(exp_clust))
-    return cluster_prob
+    log_qs = np.zero((len(contigs),len(centroids)))
+    
+    for i,contig in enumerate(contigs):
+        log_qs[i] = np.fromiter((log_probability_func(contig,centroid) for centroid in centroids))
+    max_log_qs = np.max(log_qs,axis=1,keepdims=True)
+        
+    exp_diff = np.exp(log_qs - max_log_qs)
+    
+    
+        
+#    for (centroid,exp_clust) in izip(centroids,expected_clustering_freq.flatten()):
+#        cluster_prob += np.sum(np.array([log_probability_func(contig,centroid) for contig in contigs]) + np.log(exp_clust))
+#    return cluster_prob
