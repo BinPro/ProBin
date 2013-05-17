@@ -6,13 +6,14 @@ import sys
 from random import randint
 from os import getpid
 
-def cluster(contigs, log_probability_func,fit_nonzero_parameters_func ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):
-    
-    (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)    
+def cluster(contigs, log_probability_func,fit_nonzero_parameters_func ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):    
+    (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
+
     for run in xrange(repeat):
         (clusters, clustering_prob, centroids) = _clustering(contigs,  log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon)
         (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, centroids)],key=lambda x: x[1])
-    return (max_clusters, max_clustering_prob, max_centroids)
+    return (max_clusters, max_clustering_prob, max_centroids)   
+
 def _clustering(contigs,  log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
     if centroids is None:

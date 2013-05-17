@@ -5,20 +5,13 @@ from itertools import izip
 import sys
 from multiprocessing import Pool, cpu_count
 
-def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):
+def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.001):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
     params = [(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
-    pool = Pool(processes=cpu_count()*2)
+    pool = Pool(processes=cpu_count())
     results = pool.map(_clustering_wrapper, params)
     pool.close()
     return max(results,key=lambda x: x[1])
-
-#    for run in xrange(repeat):
-       
-#        (clusters, clustering_prob, new_centroids) = _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon)
-#        (max_clusters, max_clustering_prob,max_centroids) = max([(max_clusters, max_clustering_prob, max_centroids), (clusters, clustering_prob, new_centroids)],key=lambda x: x[1])
-    
-#    return (max_clusters, max_clustering_prob, max_centroids)
 
 def _clustering_wrapper(params):
     return _clustering(*params)
@@ -26,7 +19,7 @@ def _clustering_wrapper(params):
 def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon):
     if not centroids:
         from probin.binning import kmeans
-        (clusters,_,centroids) = kmeans.cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,None,max_iter=3,repeat=2)
+        (clusters,_,centroids) = kmeans.cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,None,max_iter=3,repeat=1)
         clustering             = kmeans._expectation(contigs, log_probability_func,centroids)
         expected_cluster_freq  = np.array([len(exp) for exp in clustering],dtype=float)
         
@@ -34,22 +27,24 @@ def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, clust
         clusters = _expectation(contigs,centroids)
     clustering_prob = -np.inf
     
-    while (max_iter != 0):
+    it = 0
+    while (max_iter-it != 0):
 
         expected_clustering     = _expectation(contigs,log_probability_func,centroids, expected_cluster_freq)
         centroids               = _maximization(contigs, fit_nonzero_parameters_func, centroids, expected_clustering,)
         expected_cluster_freq   = expected_clustering.sum(axis=0,keepdims=True)
         curr_clustering_prob    = _evaluate_clustering(centroids, contigs, log_probability_func,expected_cluster_freq)
-        if (1 - curr_clustering_prob / clustering_prob <= epsilon):
+        if (1 - (curr_clustering_prob / clustering_prob) <= epsilon):
             if (curr_clustering_prob < clustering_prob):
                 print>>sys.stderr, "EM got worse, previous clustering probability : {0}, current clustering probability: {1}".format( clustering_prob, curr_clustering_prob)
                 break
             clustering_prob = curr_clustering_prob
             break
         clustering_prob = curr_clustering_prob
-        max_iter -= 1
-    if not max_iter:
+        it += 1
+    if not max_iter-it:
         print>>sys.stderr,"EM Finished maximum iteration"
+    print >> sys.stderr, "EM executed %s iterations out of %s allowed" % (it,max_iter)
     clusters = [set() for _ in range(cluster_count)]
     [clusters[i].add(contig) for (i,contig) in zip(expected_clustering.argmax(axis=1),contigs)]
     return (clusters, clustering_prob, centroids)
