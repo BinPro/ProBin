@@ -26,24 +26,21 @@ def write_clustering_result(clusters, cluster_evaluation, centroids, arguments, 
             "#Result written to files starting with: {directory}",
             "#Clustering evaluation: {clust_prob}",
             "#<Cluster sizes>",
-            "{cluster_freq}\n"]
+            "{cluster_freq}",
+            "{clusters}\n"]
     repr_centroids = ["#Centroid {0},{1}".format(i,",".join(map(str,centroid))) for i,centroid in enumerate(centroids)]
     cluster_sizes = [len(c) for c in clusters]
     tot_c = float(sum(cluster_sizes))
     cluster_freq = ["#Cluster {0}:\t{1}\t{2}".format(i,c,c/tot_c) for i,c in enumerate(cluster_sizes)]
+    cluster_contigs_id =  [ "Cluster {0}\t{1}".format(i,",".join([contig.id for contig in cluster]) )  for i,cluster in enumerate(clusters)]
     params =   {"args":arguments, "clust_prob":cluster_evaluation,
                 "centroids":os.linesep.join(repr_centroids),
                 "divide":"="*70,
                 "directory":output,
-                "cluster_freq":os.linesep.join(cluster_freq)}
+                "cluster_freq":os.linesep.join(cluster_freq),
+                "clusters":os.linesep.join(cluster_contigs_id)}
     with open(output,"w") as clustinf:
         clustinf.write(os.linesep.join(RESULT).format(**params))
-    print >> sys.stderr, os.linesep.join(RESULT).format(**params)
-    #CLUSTER OUTPUT
-    for i,cluster in enumerate(clusters):
-        file_path = "{0}_{1:04d}.fa".format(output,i)
-        with open(file_path,"w" ) as handle:
-            handle.writelines([">{0}{1}".format(c.id,os.linesep) for c in cluster])
 
 def _get_contigs(arg_file):
     try:
