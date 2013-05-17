@@ -28,7 +28,7 @@ def fit_nonzero_parameters_full_output(dna_l, algorithm="tnc"):
     if algorithm == "bfgs":
         alpha_fit = fmin_l_bfgs_b(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds)
     else:
-        alpha_fit = fmin_tnc(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds)    
+        alpha_fit = fmin_tnc(neg_log_probability_l,alpha0,fprime=neg_log_probability_l_gradient,args=(pcs,K,M),bounds=alpha_bounds,disp=0)    
     return alpha_fit
 
 def sophisticated_alpha0(pcs,kmer_hash_count):
