@@ -2,15 +2,12 @@
 # -*- coding: utf-8 -*-
 """Script for clustering metagenomic contigs based on sequence composition and
 correlation between many samples."""
-import fileinput
 import sys
 import os
-from itertools import izip
 
 from Bio import SeqIO
 
 from probin.dna import DNA
-from probin.binning import statistics as stats
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
@@ -18,42 +15,48 @@ def main(contigs,model,clustering,cluster_count,verbose):
     uniform_prob = {}
     for i in xrange(DNA.kmer_hash_count):
         uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=0.02)
+    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=0.000001)
     return (clusters,clust_prob,centroids)
 
 
-def print_clustering_result(clusters, cluster_evaluation, centroids, arguments, output):
+def write_clustering_result(clusters, cluster_evaluation, centroids, arguments, output):
+    #CLUSTERING INFORMATION OUTPUT
     RESULT=["#{divide}",
             "#Clustering based on parameters: {args}",
-            "#clustering evaluation: {clust_prob}",
-            "#<Centroids>",
-            "{centroids}",
-            "{clusters}"]
+            "#Result written to files starting with: {directory}",
+            "#Clustering evaluation: {clust_prob}",
+            "#<Cluster sizes>",
+            "{cluster_freq}\n"]
     repr_centroids = ["#Centroid {0},{1}".format(i,",".join(map(str,centroid))) for i,centroid in enumerate(centroids)]
-    
-    c = [">Cluster {0}{1}{2}".format(i,os.linesep, os.linesep.join(map(str,cluster))) for i,cluster in enumerate(clusters)]
+    cluster_sizes = [len(c) for c in clusters]
+    tot_c = float(sum(cluster_sizes))
+    cluster_freq = ["#Cluster {0}:\t{1}\t{2}".format(i,c,c/tot_c) for i,c in enumerate(cluster_sizes)]
     params =   {"args":arguments, "clust_prob":cluster_evaluation,
-                "clusters":os.linesep.join(c),
                 "centroids":os.linesep.join(repr_centroids),
-                "divide":"="*20}
-    print>>output, os.linesep.join(RESULT).format(**params)
+                "divide":"="*70,
+                "directory":output,
+                "cluster_freq":os.linesep.join(cluster_freq)}
+    with open(output,"w") as clustinf:
+        clustinf.write(os.linesep.join(RESULT).format(**params))
+    print >> sys.stderr, os.linesep.join(RESULT).format(**params)
+    #CLUSTER OUTPUT
+    for i,cluster in enumerate(clusters):
+        file_path = "{0}_{1:04d}.fa".format(output,i)
+        with open(file_path,"w" ) as handle:
+            handle.writelines([">{0}{1}".format(c.id,os.linesep) for c in cluster])
 
-def _get_contigs(arg_files):
+def _get_contigs(arg_file):
     try:
-        handle = fileinput.input(arg_files)
-        seqs = list(SeqIO.parse(handle,"fasta"))
+        with open(arg_file) as handle:
+            seqs = list(SeqIO.parse(handle,"fasta"))
     except IOError as error:    
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
-    finally:
-        handle.close()
+    except Exception as error:
+        print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
+        sys.exit(-1)
 
     contigs = [DNA(x.id, x.seq.tostring().upper(), calc_sign=True) for x in seqs]
-    try:
-        for contig,seq in izip(contigs,seqs):
-            contig.phylo = seq.description.split(" ",1)[1]
-    except Exception as error:
-        print >> sys.stderr, "No phylo information %s, message: %s" % (error,error.message)
 
     return contigs
 
@@ -72,32 +75,30 @@ if __name__=="__main__":
         except ImportError:
             print "Failed to load module {0}. Will now exit".format(args.algorithm)
             sys.exit(-1)
-        
-
-        if args.output and args.output != '-':
-            output = open(args.output, 'w')
-        else:
-            output = sys.stdout
-    
+            
         if args.verbose:
             print >> sys.stderr, "parameters: %s" % (args)
             print >> sys.stderr, "Reading file and generating contigs"
-        
-        DNA.generate_kmer_hash(args.kmer)
-    
-        contigs = _get_contigs(args.files)
+
+        if not os.path.isdir(os.path.abspath(args.output)):
+            args.output = os.getcwd()
+        output = os.sep.join([os.path.abspath(args.output),os.path.basename(args.file)+"_out"])
+        if os.path.isfile(output):
+            from datetime import datetime
+            output = "{0}_{1}".format(output,datetime.now().strftime("%Y-%m-%d-%H.%M"))
+        print >> sys.stderr, "Result files created in: %s" % (os.path.dirname(output))
+            
 
         if args.verbose:
             print >> sys.stderr, "parameters: %s" %(args)
-
-        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
-        try:
-            stats.get_statistics(contigs,clusters,output)
-        except AttributeError:
-            print >> sys.stderr, "Phylo attribute not available"
+        
+        DNA.generate_kmer_hash(args.kmer)
     
-        print_clustering_result(clusters,clust_prob,centroids,args,output)
-        output.close()
+        contigs = _get_contigs(args.file)
+        
+        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
+    
+        write_clustering_result(clusters,clust_prob,centroids,args,output)
 
     elif args.script == 'preprocess':
         if args.output:

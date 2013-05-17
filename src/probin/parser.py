@@ -1,13 +1,14 @@
+import os
 from argparse import ArgumentParser
 def main_parser():
     parser = ArgumentParser(description="Clustering of metagenomic contigs")
     subparsers = parser.add_subparsers()
 
     parser_bin = subparsers.add_parser('bin')
-    parser_bin.add_argument('files', nargs='*', 
-        help='specify input files on FASTA format, default is stdin')
-    parser_bin.add_argument('-o', '--output', 
-        help='specify the output file.  The default is stdout')
+    parser_bin.add_argument('file', 
+        help='specify input file on FASTA format')
+    parser_bin.add_argument('-o', '--output', default=os.getcwd(),
+        help='specify the output directory. The default is current directory')
     parser_bin.add_argument('-v', '--verbose', action='store_true',
         help='information written to stderr during execution.')
     parser_bin.add_argument('-k', '--kmer', default=4, type=int,
