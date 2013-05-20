@@ -12,10 +12,7 @@ from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
 def main(contigs,model,clustering,cluster_count,verbose):
-    uniform_prob = {}
-    for i in xrange(DNA.kmer_hash_count):
-        uniform_prob[i]= 1.0/float(DNA.kmer_hash_count)
-    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=0.000001)
+    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7)
     return (clusters,clust_prob,centroids)
 
 
