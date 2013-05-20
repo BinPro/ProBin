@@ -6,7 +6,7 @@ import sys
 from random import randint
 from os import getpid
 
-def cluster(contigs, log_probability_func,fit_nonzero_parameters_func ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=0.01):    
+def cluster(contigs, log_probability_func,fit_nonzero_parameters_func ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):    
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
 
     for run in xrange(repeat):
@@ -16,7 +16,7 @@ def cluster(contigs, log_probability_func,fit_nonzero_parameters_func ,cluster_c
 
 def _clustering(contigs,  log_probability_func,fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
-    if centroids is None:
+    if not np.any(centroids):
        centroids = _generate_kplusplus(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
     clustering_prob = -np.inf
     cluster_different = True
