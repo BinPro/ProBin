@@ -43,7 +43,6 @@ def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, clust
         
         
         prob_diff = curr_prob - prev_prob
-        print curr_prob, prev_prob,prob_diff
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         iteration += 1
     
