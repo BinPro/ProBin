@@ -15,6 +15,10 @@ def main_parser():
         help='specify the length of kmer to use, default 4')
     parser_bin.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial','dirichlet'],
         help='specify the composition model to use, default multinomial.')
+    parser_bin.add_argument('-ma', '--model_abundance', default='isotropic_gaussian', type=str, choices=['isotropic_gaussian'],
+        help='specify the abundance model to use, default isotropic_gaussian.')
+    parser_bin.add_argument('-cf','--cov_file', 
+        help='specify input file containing coverage information')
     parser_bin.add_argument('-a', '--algorithm', default='em', type=str, choices=['kmeans','em'],
         help='specify the clustering algorithm to use, default em.')
     parser_bin.add_argument('-c', '--cluster_count', default=10, type=int,
