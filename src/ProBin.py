@@ -72,6 +72,11 @@ if __name__=="__main__":
         except ImportError:
             print "Failed to load module {0}. Will now exit".format(args.algorithm)
             sys.exit(-1)
+        try:
+            model_coverage = __import__("probin.model.coverage.{0}".format(args.model_abundance),globals(),locals(),["*"],-1)
+        except ImportError:
+            print "Failed to load module {0}. Will now exit".format(args.model_composition)
+            sys.exit(-1)
             
         if args.verbose:
             print >> sys.stderr, "parameters: %s" % (args)
