@@ -4,6 +4,7 @@
 correlation between many samples."""
 import sys
 import os
+import pandas as p # Used by _get_coverage
 
 from Bio import SeqIO
 
@@ -11,7 +12,7 @@ from probin.dna import DNA
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-def main(contigs,model,clustering,cluster_count,verbose):
+def main(contigs,model,clustering,cluster_count,verbose,coverage=None):
     (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7)
     return (clusters,clust_prob,centroids)
 
@@ -54,6 +55,13 @@ def _get_contigs(arg_file):
 
     return contigs
 
+def _get_coverage(arg_file):
+#    try:
+    return p.io.parsers.read_table(arg_file,sep='\t',index_col=0)
+    #except Exception as error:
+    #print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
+    #sys.exit(-1)
+
 if __name__=="__main__":
     parser = main_parser()
     args = parser.parse_args()
@@ -69,7 +77,15 @@ if __name__=="__main__":
         except ImportError:
             print "Failed to load module {0}. Will now exit".format(args.algorithm)
             sys.exit(-1)
-            
+        if args.model_coverage is not 'None':
+            try:
+                model_coverage = __import__("probin.model.coverage.{0}".format(args.model_coverage),globals(),locals(),["*"],-1)
+            except ImportError:
+                print "Failed to load module {0}. Will now exit".format(args.model_composition)
+                sys.exit(-1)
+        else:
+            model_coverage = None
+
         if args.verbose:
             print >> sys.stderr, "parameters: %s" % (args)
             print >> sys.stderr, "Reading file and generating contigs"
@@ -89,8 +105,11 @@ if __name__=="__main__":
         DNA.generate_kmer_hash(args.kmer)
     
         contigs = _get_contigs(args.file)
-        
-        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose)
+        if model_coverage:
+            coverage = _get_coverage(args.coverage_file)
+            print >> sys.stderr, "Works with coverage"
+            sys.exit(-1)
+        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, coverage=coverage)
     
         write_clustering_result(clusters,clust_prob,centroids,args,output)
 
