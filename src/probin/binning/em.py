@@ -6,9 +6,9 @@ from multiprocessing import Pool, cpu_count
 from probin.binning import kmeans
 from itertools import izip
 
-def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):
+def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7,**kwargs):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
-    params = [(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
+    params = [(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,np.copy(centroids), max_iter,epsilon, kwargs) for _ in xrange(repeat)]
     pool = Pool(processes=cpu_count())
     results = pool.map(_clustering_wrapper, params)
     pool.close()
@@ -17,9 +17,12 @@ def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_co
     return max(results,key=lambda x: x[1])
 
 def _clustering_wrapper(params):
-    return _clustering(*params)
+    return _clustering(*params[0:-1],**params[-1])
 
-def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,p , max_iter, epsilon):
+def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,p , max_iter, epsilon,**kwargs):
+    if kwargs['model_coverage'] is not None:
+        print >> sys.stderr, "Model coverage in em"
+        sys.exit(-1)
     if not np.any(p):    
         clustering,_, p = kmeans._clustering(contigs, log_probability_func, fit_nonzero_parameters_func, cluster_count ,p, max_iter=3,epsilon=epsilon)
         n = np.array([len(cluster) for cluster in clustering])

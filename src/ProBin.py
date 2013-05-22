@@ -12,8 +12,11 @@ from probin.dna import DNA
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-def main(contigs,model,clustering,cluster_count,verbose,coverage=None):
-    (clusters,clust_prob, centroids) = clustering.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7)
+def main(contigs,model,algorithm,cluster_count,verbose,**kwargs):
+    if kwargs['coverage'] is None:
+        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model.log_probability,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7)
+    else:
+        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, kwargs['model_coverage'].pdf,kwargs['model_coverage'].fit_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7,**kwargs)
     return (clusters,clust_prob,centroids)
 
 
@@ -56,11 +59,11 @@ def _get_contigs(arg_file):
     return contigs
 
 def _get_coverage(arg_file):
-#    try:
-    return p.io.parsers.read_table(arg_file,sep='\t',index_col=0)
-    #except Exception as error:
-    #print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
-    #sys.exit(-1)
+    try:
+        return p.io.parsers.read_table(arg_file,sep='\t',index_col=0)
+    except Exception as error:
+        print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
+        sys.exit(-1)
 
 if __name__=="__main__":
     parser = main_parser()
@@ -107,9 +110,8 @@ if __name__=="__main__":
         contigs = _get_contigs(args.file)
         if model_coverage:
             coverage = _get_coverage(args.coverage_file)
-            print >> sys.stderr, "Works with coverage"
-            sys.exit(-1)
-        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, coverage=coverage)
+
+        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, model_coverage=model_coverage,coverage=coverage, last_data=args.last_data,first_data=args.first_data,read_length=args.read_length)
     
         write_clustering_result(clusters,clust_prob,centroids,args,output)
 
