@@ -7,6 +7,7 @@ import os
 import pandas as p # Used by _get_coverage
 
 from Bio import SeqIO
+from datetime import datetime
 
 from probin.dna import DNA
 from probin.parser import main_parser
@@ -94,7 +95,6 @@ if __name__=="__main__":
             args.output = os.getcwd()
         output = os.sep.join([os.path.abspath(args.output),"{0}_k{1}_c{2}_{3}".format(os.path.basename(args.file),args.kmer,args.cluster_count,args.algorithm)])
         if os.path.isfile(output):
-            from datetime import datetime
             output = "{0}_{1}".format(output,datetime.now().strftime("%Y-%m-%d-%H.%M"))
         print >> sys.stderr, "Result files created in: %s" % (os.path.dirname(output))
             
@@ -109,6 +109,8 @@ if __name__=="__main__":
             coverage = _get_coverage(args.coverage_file)
             print >> sys.stderr, "Works with coverage"
             sys.exit(-1)
+        else:
+            coverage = None
         (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, coverage=coverage)
     
         write_clustering_result(clusters,clust_prob,centroids,args,output)
