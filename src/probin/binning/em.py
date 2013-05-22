@@ -6,26 +6,27 @@ from multiprocessing import Pool, cpu_count
 from probin.binning import kmeans
 from itertools import izip
 
-def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):
+
+def cluster(contigs, model ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
-    params = [(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
-    pool = Pool(processes=cpu_count())
-    results = pool.map(_clustering_wrapper, params)
-    pool.close()
-    #results = [_clustering_wrapper(param) for param in params]
+    params = [(contigs, model.log_probabilities, model.fit_nonzero_parameters, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
+    #pool = Pool(processes=cpu_count())
+    #results = pool.map(_clustering_wrapper, params)
+    #pool.close()
+    results = [_clustering_wrapper(param) for param in params]
         
     return max(results,key=lambda x: x[1])
 
 def _clustering_wrapper(params):
     return _clustering(*params)
 
-def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,p , max_iter, epsilon):
+def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,p , max_iter, epsilon):
     if not np.any(p):    
-        clustering,_, p = kmeans._clustering(contigs, log_probability_func, fit_nonzero_parameters_func, cluster_count ,p, max_iter=3,epsilon=epsilon)
+        clustering,_, p = kmeans._clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,p, max_iter=3,epsilon=epsilon)
         n = np.array([len(cluster) for cluster in clustering])
-        exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probability_func,p)
-        z = _expectation(contigs,log_probability_func,n,exp_log_qs)
-        prev_prob,_,_ = _evaluate_clustering(contigs, log_probability_func, p, z)
+        exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probabilities_func,p)
+        z = _expectation(contigs,n,exp_log_qs)
+        prev_prob,_,_ = _evaluate_clustering(contigs, log_probabilities_func, p, z)
 
     else:
         print >> sys.stderr, "Not implemented for EM to start with fixed p (centroids)"
@@ -36,9 +37,9 @@ def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, clust
     iteration = 0
     
     while(max_iter - iteration > 0 and prob_diff > epsilon):
-        z = _expectation(contigs,log_probability_func,n,exp_log_qs)
+        z = _expectation(contigs,n,exp_log_qs)
         p = _maximization(contigs,fit_nonzero_parameters_func,z)        
-        curr_prob, exp_log_qs, max_log_qs = _evaluate_clustering(contigs,log_probability_func,p,z)        
+        curr_prob, exp_log_qs, max_log_qs = _evaluate_clustering(contigs,log_probabilities_func,p,z)        
         n = np.sum(z,axis=0,keepdims=True)
         
         
@@ -56,9 +57,10 @@ def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, clust
     for (contig,which) in izip(contigs,which_cluster):
         clustering[which].add(contig)
     return (clustering, curr_prob, p)
-def _expectation(contigs, log_probability_func, n, exp_log_qs):
+
+def _expectation(contigs, n, exp_log_qs):
     """
-    Usage: _expectation(contigs,log_probability_func, p, n, exp_log_qs, max_log_qs)
+    Usage: _expectation(contigs, p, n, exp_log_qs, max_log_qs)
     Return: The responsibility matrix for currenct p and n
     
     We are calculating the expression <z_{i,k}> = Q(theta_i|p_k)n_k / sum_{l=1}^K(Q(theta_i|p_l)*n_l)
@@ -88,9 +90,9 @@ def _maximization(contigs, fit_nonzero_parameters_func, z):
     return fit_nonzero_parameters_func(contigs,expected_clustering=z.T)
     
 
-def _evaluate_clustering(contigs, log_probability_func, p, z):
+def _evaluate_clustering(contigs, log_probabilities_func, p, z):
     """
-    Usage:  _evaluate_clustering(contigs,log_probability_func, p, z)
+    Usage:  _evaluate_clustering(contigs,log_probabilities_func, p, z)
     Return: (clustering_prob, exp_log_qs, max_log_qs)
     
     calculate log L(theta|z,p) or log L(contigs| expected_clustering_freq,centroids)
@@ -106,15 +108,15 @@ def _evaluate_clustering(contigs, log_probability_func, p, z):
 
     exp_log_qs and max_log_qs are used in the next iteration in _evaluation.     
     """
-    exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probability_func,p)
+    exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probabilities_func,p)
 
     clustering_prob = np.sum(max_log_qs + np.log(np.sum(z*exp_log_qs)))
     return clustering_prob, exp_log_qs, max_log_qs
-    
-def _get_exp_log_qs(contigs,log_probability_func,p):
+
+def _get_exp_log_qs(contigs,log_probabilities_func,p):
     log_qs = np.zeros((len(contigs),len(p)))
     for i,contig in enumerate(contigs):
-        log_qs[i] = np.fromiter((log_probability_func(contig,centroid) for centroid in p),dtype=float)
+        log_qs[i] = log_probabilities_func(contig,p)
     max_log_qs = np.max(log_qs,axis=1,keepdims=True)
     exp_log_qs = np.exp(log_qs - max_log_qs)
     return exp_log_qs, max_log_qs
