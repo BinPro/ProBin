@@ -43,7 +43,7 @@ def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cl
         n = np.sum(z,axis=0,keepdims=True)
         
         
-        prob_diff = curr_prob - prev_prob
+        prob_diff = 1-curr_prob / prev_prob
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         iteration += 1
     
