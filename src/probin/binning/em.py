@@ -9,10 +9,10 @@ from itertools import izip
 def cluster(contigs, log_probability_func,fit_nonzero_parameters_func,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
     params = [(contigs, log_probability_func,fit_nonzero_parameters_func, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
-    #pool = Pool(processes=cpu_count())
-    #results = pool.map(_clustering_wrapper, params)
-    #pool.close()
-    results = [_clustering_wrapper(param) for param in params]
+    pool = Pool(processes=cpu_count())
+    results = pool.map(_clustering_wrapper, params)
+    pool.close()
+    #results = [_clustering_wrapper(param) for param in params]
         
     return max(results,key=lambda x: x[1])
 
@@ -48,9 +48,9 @@ def _clustering(contigs, log_probability_func,fit_nonzero_parameters_func, clust
     
     #Change back so curr_prob represents the highest probability
     (curr_prob,prev_prob) = (prev_prob,curr_prob)
-    print >> sys.stderr, "iterations: {0}".format(iteration)
+    print >> sys.stderr, "EM iterations: {0}".format(iteration)
     if prob_diff < 0:
-        print >> sys.stderr, "Previous probability {0} was greater than current probability {1}. Should never happen in EM".format(prev_prob,curr_prob)
+        print >> sys.stderr, "EM got worse, diff: {0}".format(prob_diff)
     clustering = [set() for _ in xrange(len(p))]
     which_cluster = np.argmax(z,axis=1)
     for (contig,which) in izip(contigs,which_cluster):
