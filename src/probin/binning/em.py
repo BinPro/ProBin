@@ -10,10 +10,10 @@ from itertools import izip
 def cluster(contigs, model ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
     params = [(contigs, model.log_probabilities, model.fit_nonzero_parameters, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
-    #pool = Pool(processes=cpu_count())
-    #results = pool.map(_clustering_wrapper, params)
-    #pool.close()
-    results = [_clustering_wrapper(param) for param in params]
+    pool = Pool(processes=cpu_count())
+    results = pool.map(_clustering_wrapper, params)
+    pool.close()
+    #results = [_clustering_wrapper(param) for param in params]
         
     return max(results,key=lambda x: x[1])
 
