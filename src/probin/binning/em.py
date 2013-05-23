@@ -22,7 +22,7 @@ def _clustering_wrapper(params):
 
 
 def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count, p, max_iter, epsilon, **kwargs):
-    if kwargs['model_coverage'] is not None:
+    if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
         print >> sys.stderr, "Model coverage in em"
         sys.exit(-1)
     if not np.any(p):    
