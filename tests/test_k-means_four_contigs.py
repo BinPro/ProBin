@@ -50,7 +50,7 @@ class TestKmeans(object):
         assert_equal(np.sum(centroids,axis=1).all(),1)
 
     def test_generate_kplusplus_centroids(self):
-        centroids = kmeans._generate_kplusplus(self.contigs,multinomial.log_probability, multinomial.fit_nonzero_parameters,self.cluster_count,dna.DNA.kmer_hash_count,self.rs)
+        centroids = kmeans._generate_kplusplus(self.contigs,multinomial.log_probabilities, multinomial.fit_nonzero_parameters,self.cluster_count,dna.DNA.kmer_hash_count,self.rs)
         assert_equal(len(centroids), self.cluster_count)
         assert_equal(len(centroids[0]),dna.DNA.kmer_hash_count )
         assert_equal(np.sum(centroids,axis=1).all(),1)
@@ -58,10 +58,10 @@ class TestKmeans(object):
         correct_centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         correct_centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0], self.contigs[1]])
         correct_centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2], self.contigs[3]])
-        correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probability,correct_centroids)
-        correct_clust_prob = kmeans._evaluate_clustering(multinomial.log_probability, correct_clusters,correct_centroids)
+        correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,correct_centroids)
+        correct_clust_prob = kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters,correct_centroids)
         
-        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probability, multinomial.fit_nonzero_parameters,self.cluster_count,centroids)
+        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,centroids)
         print clust_prob
         assert_almost_equal(0, min(np.abs(clust_prob - np.array([-1659.9510320847476, -1652.322663414292, -1658.28785337, -1665.52431153]))))
         
@@ -69,23 +69,23 @@ class TestKmeans(object):
         centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0],self.contigs[1]])
         centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2],self.contigs[3]])
-        correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probability,centroids)        
+        correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,centroids)        
 
-        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probability, multinomial.fit_nonzero_parameters,self.cluster_count,centroids)
+        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,centroids)
         
-        assert_equal(kmeans._evaluate_clustering(multinomial.log_probability, correct_clusters, centroids),clust_prob)
+        assert_equal(kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters, centroids),clust_prob)
 
     def test_cluster_semi_center(self):
         centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0]])
         centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2]])
-        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probability, multinomial.fit_nonzero_parameters,2,centroids)
+        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,2,centroids)
 
         correct_centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         correct_centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0], self.contigs[1]])
         correct_centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2], self.contigs[3]])
-        correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probability,correct_centroids)        
+        correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,correct_centroids)        
         
-        assert_equal(kmeans._evaluate_clustering(multinomial.log_probability, correct_clusters, correct_centroids),clust_prob)
+        assert_equal(kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters, correct_centroids),clust_prob)
         
         
