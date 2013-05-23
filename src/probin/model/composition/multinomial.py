@@ -34,6 +34,15 @@ def log_probability(seq, prob_vector):
 
     return np.sum((signature_vector * np.log(prob_vector)) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))
 
+def log_probabilities(seq, prob_vectors):
+    if len(prob_vectors.shape) == 1:
+        prob_vectors = np.array([prob_vectors])
+    signature_vector = np.zeros(seq.kmer_hash_count)
+    for key,value in seq.signature.iteritems():
+        signature_vector[key] = value
+    return np.sum((signature_vector * np.log(prob_vectors)) - _log_fac(signature_vector),axis=1) + _log_fac(np.sum(signature_vector))
+
+
 def _log_fac(i):
     # gammaln produces the natural logarithm of the factorial of i-1
     return gammaln(i+1)
