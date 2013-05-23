@@ -8,6 +8,12 @@ import sys
 def pdf(x,mu,sigma):
     return scipy.stats.norm.pdf(x,loc=mu,scale=sigma).prod()
 
+def log_probabilities(x,mu,sigma):
+    return log_pdf(x,mu,sigma)
+
+def fit_nonzero_parameters(x,**kwargs):
+    return fit_parameters(x,**kwargs)
+
 def log_pdf(x,mu,sigma):
     return np.log(scipy.stats.norm.pdf(x,loc=mu,scale=sigma)).sum()
 
