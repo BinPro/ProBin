@@ -2,8 +2,6 @@ import scipy.stats
 import numpy as np
 import math
 import sys
-    
-
 
 def pdf(x,mu,sigma):
     return scipy.stats.norm.pdf(x,loc=mu,scale=sigma).prod()
@@ -26,7 +24,7 @@ def fit_parameters(x,expected_clustering=None):
     mu = np.dot(x.T,expected_clustering)
     mu /= n
     if N == 1:
-        sigma = np.ones(K)
+        sigma = np.zeros(K) + np.max([1,np.max(mu)])
     else:
         sigma = np.zeros(K)
         for k in xrange(K):
