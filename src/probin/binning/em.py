@@ -2,25 +2,35 @@
 """Cluster DNA based on EM algorithm with fixed number of clusters"""
 import numpy as np
 import sys
+
 from multiprocessing import Pool, cpu_count
 from probin.binning import kmeans
+from probin.output import Output
 from itertools import izip
 
-
-def cluster(contigs, model ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):
+def cluster(contigs, expectation_func, maximization_func, cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7,verbose=False,**kwargs):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
-    params = [(contigs, model.log_probabilities, model.fit_nonzero_parameters, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
-    pool = Pool(processes=cpu_count())
-    results = pool.map(_clustering_wrapper, params)
-    pool.close()
-    #results = [_clustering_wrapper(param) for param in params]
+    params = [(contigs, expectation_func,maximization_func, cluster_count, np.copy(centroids), max_iter,epsilon, verbose, run, kwargs) for run in xrange(repeat)]
+    try:
+        pool = Pool(processes=cpu_count())
+        results = pool.map(_clustering_wrapper, params)
+    except Exception as e:
+        print >> sys.stderr, "EM clustering failed. Error: {0}, message: {1}".format(e,e.message)
+        sys.exit(-1)
+    finally:
+        pool.close()
+#    results = [_clustering_wrapper(param) for param in params]
         
     return max(results,key=lambda x: x[1])
 
 def _clustering_wrapper(params):
-    return _clustering(*params)
+    return _clustering(*params[0:-1],**params[-1])
 
-def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,p , max_iter, epsilon):
+
+def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count, p, max_iter, epsilon, verbose, run, **kwargs):
+    if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
+        print >> sys.stderr, "Model coverage in em"
+        sys.exit(-1)
     if not np.any(p):    
         clustering,_, p = kmeans._clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,p, max_iter=3,epsilon=epsilon)
         n = np.array([len(cluster) for cluster in clustering])
@@ -31,32 +41,42 @@ def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cl
     else:
         print >> sys.stderr, "Not implemented for EM to start with fixed p (centroids)"
         sys.exit(-1)
-        
+    if verbose:
+        _log_current_status(contigs,prev_prob,p,z,run)
     prob_diff = np.inf
     prev_prob = -np.inf
     iteration = 0
     
-    while(max_iter - iteration > 0 and prob_diff > epsilon):
+    while(max_iter - iteration > 0 and prob_diff >= epsilon):
         z = _expectation(contigs,n,exp_log_qs)
         p = _maximization(contigs,fit_nonzero_parameters_func,z)        
         curr_prob, exp_log_qs, max_log_qs = _evaluate_clustering(contigs,log_probabilities_func,p,z)        
         n = np.sum(z,axis=0,keepdims=True)
         
         
-        prob_diff = 1-curr_prob / prev_prob
+        prob_diff = curr_prob - prev_prob
+        if verbose:
+            _log_current_status(contigs,curr_prob,p,z,run)
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         iteration += 1
-    
     #Change back so curr_prob represents the highest probability
     (curr_prob,prev_prob) = (prev_prob,curr_prob)
     print >> sys.stderr, "EM iterations: {0}".format(iteration)
     if prob_diff < 0:
         print >> sys.stderr, "EM got worse, diff: {0}".format(prob_diff)
+
+    return (clustering, curr_prob, p)
+
+def _log_current_status(contigs,cluster_prob,p,z,run):
+    clustering = _get_current_clustering(contigs,p,z)
+    Output.write_clustering_result(clustering,cluster_prob ,p,arguments=None,tmpfile=True,tmpfile_suffix=run)    
+
+def _get_current_clustering(contigs, p, z):
     clustering = [set() for _ in xrange(len(p))]
     which_cluster = np.argmax(z,axis=1)
     for (contig,which) in izip(contigs,which_cluster):
         clustering[which].add(contig)
-    return (clustering, curr_prob, p)
+    return clustering
 
 def _expectation(contigs, n, exp_log_qs):
     """
