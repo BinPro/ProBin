@@ -37,13 +37,13 @@ class Output(object):
                 "#Cluster sizes",
                 "{cluster_freq}",
                 "#{divide}",
-                "{clusters}\n"]
+                "{clusters}"]
         curr_time = datetime.now()
         repr_centroids = ["#Centroid {0},{1}".format(i,",".join(map(str,centroid))) for i,centroid in enumerate(centroids)]
         cluster_sizes = [len(c) for c in clusters]
         tot_c = float(sum(cluster_sizes))
         cluster_freq = ["#Cluster {0}:\t{1}\t{2}".format(i,c,c/tot_c) for i,c in enumerate(cluster_sizes)]
-        cluster_contigs_id =  [ "Cluster {0}:,{1}".format(i,",".join([contig.id for contig in cluster]) )  for i,cluster in enumerate(clusters)]
+        cluster_contigs_id =  [ "Cluster {0},{1}".format(i,",".join([contig.id for contig in cluster]) )  for i,cluster in enumerate(clusters)]
         params =   {"args":arguments, "clust_prob":cluster_evaluation,
                     "centroids":os.linesep.join(repr_centroids),
                     "divide":"="*70,

@@ -11,15 +11,15 @@ from itertools import izip
 def cluster(contigs, expectation_func, maximization_func, cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7,verbose=False,**kwargs):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
     params = [(contigs, expectation_func,maximization_func, cluster_count, np.copy(centroids), max_iter,epsilon, verbose, run, kwargs) for run in xrange(repeat)]
-#    try:
-#        pool = Pool(processes=cpu_count())
-#        results = pool.map(_clustering_wrapper, params)
-#    except Exception as e:
-#        print >> sys.stderr, "EM clustering failed. Error: {0}, message: {1}".format(e,e.message)
-#        sys.exit(-1)
-#    finally:
-#        pool.close()
-    results = [_clustering_wrapper(param) for param in params]
+    try:
+        pool = Pool(processes=cpu_count())
+        results = pool.map(_clustering_wrapper, params)
+    except Exception as e:
+        print >> sys.stderr, "EM clustering failed. Error: {0}, message: {1}".format(e,e.message)
+        sys.exit(-1)
+    finally:
+        pool.close()
+#    results = [_clustering_wrapper(param) for param in params]
         
     return max(results,key=lambda x: x[1])
 
