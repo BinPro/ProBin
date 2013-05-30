@@ -36,6 +36,8 @@ class Output(object):
                 "#Clustering evaluation: {clust_prob}",
                 "#Cluster sizes",
                 "{cluster_freq}",
+                "Output below is on the form",
+                "cluster_id,contig_n,contig_m,...",
                 "#{divide}",
                 "{clusters}"]
         curr_time = datetime.now()
