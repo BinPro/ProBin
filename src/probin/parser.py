@@ -32,6 +32,12 @@ def main_parser():
         help='specify the clustering algorithm to use, default em.')
     parser_bin.add_argument('-c', '--cluster_count', default=10, type=int,
         help='specify the number of cluster to use')
+    parser_bin.add_argument('-i', '--iterations', default=150, type=int,
+        help='specify the maximum number of iterations to allow before halting clustering')
+    parser_bin.add_argument('-e', '--epsilon', default=1E-3, type=float,
+        help='specify the precision of the clustering as stop condition')
+    parser_bin.add_argument('-r', '--repeat', default=16, type=int,
+        help='specify the number of times to run clustering with different start conditions')
 
     parser_bin.set_defaults(script='probin')
 
