@@ -13,11 +13,11 @@ from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
 
-def main(contigs,model,algorithm,cluster_count,verbose,**kwargs):
+def main(contigs,model,algorithm,cluster_count,verbose,iterations,repeat,epsilon,**kwargs):
     if kwargs['coverage'] is None:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model.log_probabilities ,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-3, verbose=verbose)
+        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model.log_probabilities ,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon, verbose=verbose)
     else:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, kwargs['model_coverage'], cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7,verbose=verbose,**kwargs)
+        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, kwargs['model_coverage'], cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon,verbose=verbose,**kwargs)
     return (clusters,clust_prob,centroids)
 
 def _get_contigs(arg_file):
@@ -76,7 +76,7 @@ if __name__=="__main__":
         else:
             coverage = None
 
-        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, model_coverage=model_coverage,coverage=coverage, last_data=args.last_data,first_data=args.first_data,read_length=args.read_length)
+        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, args.iterations, args.repeat,args.epsilon, model_coverage=model_coverage,coverage=coverage, last_data=args.last_data,first_data=args.first_data,read_length=args.read_length)
 
         Output.write_clustering_result(clusters,clust_prob,centroids,args)
 

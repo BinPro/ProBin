@@ -61,7 +61,7 @@ def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cl
         iteration += 1
     #Change back so curr_prob represents the highest probability
     (curr_prob,prev_prob) = (prev_prob,curr_prob)
-    print >> sys.stderr, "EM iterations: {0}".format(iteration)
+    print >> sys.stderr, "EM iterations: {0}, difference: {1}".format(iteration, prob_diff)
     if prob_diff < 0:
         print >> sys.stderr, "EM got worse, diff: {0}".format(prob_diff)
 
@@ -107,7 +107,7 @@ def _maximization(contigs, fit_nonzero_parameters_func, z):
     We are calculating the expression p_{k,j} = sum_i(<z_{i,k}>*theta_{i,j}) / sum_j( sum_i(<z_{i,k}>*theta_{i,j}))
     
     """
-    return fit_nonzero_parameters_func(contigs,expected_clustering=z.T)
+    return fit_nonzero_parameters_func(contigs,expected_clustering=z)
     
 
 def _evaluate_clustering(contigs, log_probabilities_func, p, z):
