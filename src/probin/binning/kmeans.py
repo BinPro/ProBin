@@ -7,10 +7,9 @@ from random import randint
 from os import getpid
 from multiprocessing import Pool, cpu_count
 
-
-def cluster(contigs, model ,cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7):    
+def cluster(contigs, expectation_func, maximization_func, cluster_count,centroids=None,max_iter=100, repeat=10,epsilon=1E-7,verbose=False,**kwargs):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
-    params = [(contigs, model.log_probabilities, model.fit_nonzero_parameters, cluster_count ,np.copy(centroids), max_iter,epsilon) for _ in xrange(repeat)]
+    params = [(contigs, expectation_func, maximization_func, cluster_count, np.copy(centroids), max_iter,epsilon, verbose, run, kwargs) for run in xrange(repeat)]
     pool = Pool(processes=cpu_count())
     results = pool.map(_clustering_wrapper, params)
     pool.close()
@@ -21,7 +20,7 @@ def cluster(contigs, model ,cluster_count,centroids=None,max_iter=100, repeat=10
 def _clustering_wrapper(params):
     return _clustering(*params)
 
-def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon):
+def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon,verbose,run,kwargs):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
     if not np.any(centroids):
        centroids = _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
@@ -30,7 +29,7 @@ def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cl
     prob_diff = np.inf
     iteration = 0
 
-    while (prob_diff > epsilon and max_iter-iteration > 0):
+    while (prob_diff >= epsilon and max_iter-iteration > 0):
 
         clusters = _expectation(contigs, log_probabilities_func, centroids)
 
