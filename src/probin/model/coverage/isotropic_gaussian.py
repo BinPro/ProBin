@@ -16,18 +16,23 @@ def log_pdf(x,mu,sigma):
     return np.log(scipy.stats.norm.pdf(x,loc=mu,scale=sigma)).sum()
 
 def fit_parameters(x,expected_clustering=None):
-    N,L = x.shape
+    # Observe that mu will be 2-dimensional even though 
+    # the number of clusters in expected_clustering is 1 or
+    # if expected_clustering is undefined.
+
+    N,L = x.shape # N: the number of contigs,L: the number of features
     if expected_clustering is None:
-        expected_clustering = np.ones((1,N))
-    n = expected_clustering.sum(axis=0)
-    K = n.shape[0] # The number of clusters
-    mu = np.dot(x.T,expected_clustering)
-    mu /= n
+         # All contigs are 100% in this single cluster
+        expected_clustering = np.ones((N,1))
+    n = expected_clustering.sum(axis=0,keepdims=True)
+    K = n.shape[1] # The number of clusters
+    mu = np.dot(expected_clustering.T,x)
+    mu /= n.T
     if N == 1:
-        sigma = np.zeros(K) + np.max([1,np.max(mu)])
+        sigma = np.ones(K)
     else:
         sigma = np.zeros(K)
         for k in xrange(K):
-            sigma[k] = np.dot(np.array([np.dot(x[i,:]-mu[:,k],(x[i,:]-mu[:,k]).T) for i in xrange(N)]),expected_clustering[:,k])/n[k]
+            sigma[k] = np.array([np.dot(expected_clustering[i,k]*(x[i,:]-mu[k,:]),(x[i,:]-mu[k,:]).T) for i in xrange(N)]).sum()/n[0,k]
 
     return mu,sigma
