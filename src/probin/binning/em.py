@@ -61,7 +61,7 @@ def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cl
         iteration += 1
     #Change back so curr_prob represents the highest probability
     (curr_prob,prev_prob) = (prev_prob,curr_prob)
-    print >> sys.stderr, "EM iterations: {0}".format(iteration)
+    print >> sys.stderr, "EM iterations: {0}, difference: {1}".format(iteration, prob_diff)
     if prob_diff < 0:
         print >> sys.stderr, "EM got worse, diff: {0}".format(prob_diff)
 
