@@ -18,9 +18,9 @@ def cluster(contigs, expectation_func, maximization_func, cluster_count,centroid
     return max(results,key=lambda x: x[1])
 
 def _clustering_wrapper(params):
-    return _clustering(*params)
+    return _clustering(*params[0:-1],**params[-1])
 
-def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon,verbose,run,**kwargs):
+def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,centroids, max_iter,epsilon,verbose,run, **kwargs):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
     if not np.any(centroids):
        centroids = _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
