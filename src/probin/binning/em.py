@@ -31,8 +31,8 @@ def _clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cl
     if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
         print >> sys.stderr, "Model coverage in em"
         sys.exit(-1)
-    if not np.any(p):    
-        clustering,_, p = kmeans._clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,p, max_iter=3,epsilon=epsilon)
+    if not np.any(p):
+        clustering,_, p = kmeans._clustering(contigs, log_probabilities_func, fit_nonzero_parameters_func, cluster_count ,p, max_iter=3,epsilon=epsilon,verbose=verbose,run=run,**kwargs)
         n = np.array([len(cluster) for cluster in clustering])
         exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probabilities_func,p)
         z = _expectation(contigs,n,exp_log_qs)

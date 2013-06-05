@@ -15,7 +15,7 @@ from probin.preprocess import main_preprocess
 
 def main(contigs,model,algorithm,cluster_count,verbose,iterations,repeat,epsilon,**kwargs):
     if kwargs['coverage'] is None:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model.log_probabilities ,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon, verbose=verbose)
+        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model.log_probabilities ,model.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon, verbose=verbose, **kwargs)
     else:
         (clusters,clust_prob, centroids) = algorithm.cluster(contigs, kwargs['model_coverage'], cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon,verbose=verbose,**kwargs)
     return (clusters,clust_prob,centroids)
