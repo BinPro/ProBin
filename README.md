@@ -4,6 +4,14 @@ ProBin
 A program for binning metagenomic contigs to taxonomic rank by using nucleotide composition and 
 coverage data in multiple samples.
 
+Install
+-------
+Clone the repository and execute
+```
+cd ProBin/src
+pyhon setup.py install
+```
+Installs the package probin in default python path, and adds script ProBin.py to bin
 
 Execute ProBin
 -------
