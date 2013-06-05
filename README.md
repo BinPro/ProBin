@@ -33,6 +33,7 @@ ProBin.py bin contigs.fna -mc multinomial -k 4 -c 10 -a em -r 10 -i 100 -e 0.001
 
 Dependencies
 -----------
+```
 Jinja2==2.6
 Pygments==1.6
 argparse==1.2.1
@@ -57,7 +58,7 @@ virtualenv==1.9.1
 virtualenv-clone==0.2.4
 virtualenvwrapper==3.7
 wsgiref==0.1.2
-
+```
 
 
 TODO
