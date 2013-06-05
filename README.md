@@ -1,7 +1,8 @@
 ProBin
 ======
 
-A program for binning metagenomic contigs to taxonomic rank by using nucleotide composition and correlation between samples. 
+A program for binning metagenomic contigs to taxonomic rank by using nucleotide composition and 
+coverage data in multiple samples.
 
 
 Execute ProBin
