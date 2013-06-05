@@ -33,6 +33,7 @@ ProBin.py bin contigs.fna -mc multinomial -k 4 -c 10 -a em -r 10 -i 100 -e 0.001
 
 Dependencies
 -----------
+Developed under python 2.7 and following packages installed through pip:
 ```
 Jinja2==2.6
 Pygments==1.6
