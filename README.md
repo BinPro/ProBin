@@ -16,7 +16,7 @@ Installs the package probin in default python path, and adds script ProBin.py to
 Execute ProBin
 -------
 ```
-- contigs.fna     contains the fasta formatted contigs
+- f               contains the fasta formatted contigs
 - k               the kmer size
 - c               number of clusters
 - r               the number of runs to execute clustering
@@ -32,9 +32,22 @@ Execute ProBin
 - o               The directory where result files should be stored, otherwise current dir used
 ```
 
-Example of executing ProBin
+Examples of executing ProBin
+Using composition
 ```
-ProBin.py bin contigs.fna -mc multinomial -k 4 -c 10 -a em -r 10 -i 100 -e 0.001 \
+ProBin.py bin -f contigs.fna -mc multinomial -k 4 -c 10 -a em -r 10 -i 100 -e 0.001 -o /tmp/results
+
+```
+Using coverage
+```
+ProBin.py bin -cf coverage.tsv --model_coverage isotropic_gaussian --first_data 2012-03-25 \
+              --last-data 2013-01-18 --read_length 100 -o /tmp/results
+
+```
+
+Using both composition and coverage
+```
+ProBin.py bin -f contigs.fna -mc multinomial -k 4 -c 10 -a em -r 10 -i 100 -e 0.001 \
               -cf coverage.tsv --model_coverage isotropic_gaussian --first_data 2012-03-25 \
               --last-data 2013-01-18 --read_length 100 -o /tmp/results
 
