@@ -5,7 +5,7 @@ def main_parser():
     subparsers = parser.add_subparsers()
 
     parser_bin = subparsers.add_parser('bin')
-    parser_bin.add_argument('file', 
+    parser_bin.add_argument('-f','--file', 
         help='specify input file on FASTA format')
     parser_bin.add_argument('-o', '--output', default=os.getcwd(),
         help='specify the output directory. The default is current directory')
