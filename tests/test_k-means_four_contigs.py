@@ -61,7 +61,7 @@ class TestKmeans(object):
         correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,correct_centroids)
         correct_clust_prob = kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters,correct_centroids)
         
-        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,centroids)
+        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,self.cluster_count,centroids)
         print clust_prob
         assert_almost_equal(0, min(np.abs(clust_prob - np.array([-1659.9510320847476, -1652.322663414292, -1658.28785337, -1665.52431153]))))
         
@@ -71,7 +71,7 @@ class TestKmeans(object):
         centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2],self.contigs[3]])
         correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,centroids)        
 
-        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,centroids)
+        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,self.cluster_count,centroids)
         
         assert_equal(kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters, centroids),clust_prob)
 
@@ -79,7 +79,7 @@ class TestKmeans(object):
         centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0]])
         centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2]])
-        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,2,centroids)
+        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,2,centroids)
 
         correct_centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         correct_centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0], self.contigs[1]])

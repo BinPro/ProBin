@@ -52,7 +52,7 @@ class TestKmeans10000(object):
         print>>sys.stderr, centroids.shape
         print>>sys.stderr, len(self.contigs)
         print>>sys.stderr, self.cluster_count
-        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,max_iter=100,repeat=10)        
+        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,self.cluster_count,max_iter=100,repeat=10)        
         assert_equal(len(centroids), self.cluster_count)
         assert_equal(len(centroids[0]),dna.DNA.kmer_hash_count )
         assert_equal(np.sum(centroids,axis=1).all(),1)
