@@ -13,9 +13,9 @@ def main_parser():
         help='information written to stderr during execution.')
     parser_bin.add_argument('-k', '--kmer', default=4, type=int,
         help='specify the length of kmer to use, default 4')
-    parser_bin.add_argument('-mc', '--model_composition', default='multinomial', type=str, choices=['multinomial','dirichlet'],
-        help='specify the composition model to use, default multinomial.')
-    parser_bin.add_argument('--model_coverage', default='None', type=str, choices=['isotropic_gaussian','None'],
+    parser_bin.add_argument('-mc', '--model_composition', default=None, type=str, choices=['multinomial','dirichlet'],
+        help='specify the composition model to use, default None.')
+    parser_bin.add_argument('--model_coverage', default=None, type=str, choices=['isotropic_gaussian'],
         help='specify the abundance model to use, default: None')
     parser_bin.add_argument('-cf','--coverage_file',
         help='specify input file containing coverage information')
