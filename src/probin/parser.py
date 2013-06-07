@@ -51,6 +51,11 @@ def main_parser():
     parser_preprocess.add_argument('-s', '--strain', action='store_true',
                                    help="""Use this option if the strain 
 that the reads unambiguosly mapped to should be included in output""")
+    parser_preprocess.add_argument('-t', '--total_read', action='store_true',
+                                   help="""Use this option if the total read count is included in the tot_nr_reads column of input file and should be used in the output as well.""")
+    parser_preprocess.add_argument('--ratio', action='store_true',
+                                   help="""Use this option if the ratio of contigs lengths to genome is included in the input file and should be used in the output as well.""")
+
     
     parser_preprocess.set_defaults(script='preprocess')
 
