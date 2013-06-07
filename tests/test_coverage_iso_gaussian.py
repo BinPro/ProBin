@@ -9,7 +9,6 @@ from Bio import SeqIO
 
 from probin import dna
 from probin.binning import kmeans
-from probin.binning import statistics
 from probin.model.coverage import isotropic_gaussian as model
 
 file_path = os.path.realpath(__file__)
