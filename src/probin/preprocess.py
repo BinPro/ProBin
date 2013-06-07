@@ -28,6 +28,10 @@ def main_preprocess(args):
             series_dict[file_base_name] = input_df.unamb_tot_nr_reads
             if args.strain:
                 series_dict[file_base_name+'_strain'] = input_df.unamb_dominant_strain
+            if args.total_read:
+                series_dict['total_read_count'] = input_df.tot_nr_reads
+            if args.ratio:
+                series_dict['contigs_genome_length_ratio'] = input_df.contigs_genome_length_ratio
         
         df = p.DataFrame(series_dict)
         df.to_csv(args.output, sep='\t')
