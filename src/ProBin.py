@@ -57,20 +57,33 @@ if __name__=="__main__":
             if args.model_type == "composition":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
-                contigs = _get_contigs(args.file)
+                contigs = _get_contigs(args.composition_file)
                 params["contigs"] = contigs
                 expectation_func = model.log_probabilities
                 maximization_func = model.fit_nonzero_parameters
                 ##Don't think this is needed:
                 #params["kmer"] = args.kmer
+                outfile = args.composition_file
             elif args.model_type == "coverage":
-                coverage = _get_coverage(args.file)
+                coverage = _get_coverage(args.coverage_file)
                 params["coverage"] = coverage
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
                 expectation_func = model.log_probabilities
-                maximization_func = model.fit_nonzero_parameters                
+                maximization_func = model.fit_nonzero_parameters
+                outfile = args.coverage_file
+            elif args.model_type == "combined":
+                from probin.dna import DNA
+                DNA.generate_kmer_hash(args.kmer)
+                contigs = _get_contigs(args.composition_file)
+                params["contigs"] = contigs
+                coverage = _get_coverage(args.coverage_file)
+                params["coverage"] = coverage
+                params["first_data"] = args.first_data
+                params["last_data"] = args.last_data
+                params["read_length"] = args.read_length
+                outfile = "_".join([args.composition_file,args.coverage_file])
         except ImportError:
             print "Failed to load module {0}.{1}. Will now exit".format(args.model_type,args.model)
             sys.exit(-1)
@@ -89,7 +102,7 @@ if __name__=="__main__":
         #Prep output settings
         #=============================
         #TODO: Needs to be fixed to allow only coverage etc.
-        Output.set_output_path(args.output,args.file,args.kmer,args.cluster_count,args.algorithm)
+        Output.set_output_path(outfile,args)
 
         #=============================
         #Calling clustering
