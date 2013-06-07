@@ -40,7 +40,11 @@ class TestKmeans10000(object):
         self.correct_centroids = correct_centroids
         self.correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,self.correct_centroids)        
         self.rs = np.random.RandomState(seed=1)
-
+	self.params = {"contigs":self.contigs}
+	self.max_iter=100
+	self.run = 3
+	self.epsilon = 0.001
+	self.verbose = False
     def tearDown(self):
         reload(dna)
         reload(kmeans)
@@ -52,7 +56,8 @@ class TestKmeans10000(object):
         print>>sys.stderr, centroids.shape
         print>>sys.stderr, len(self.contigs)
         print>>sys.stderr, self.cluster_count
-        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial,self.cluster_count,max_iter=100,repeat=10)        
+	self.params["centroids"] = centroids
+        (clusters,clust_prob,new_centroids) = kmeans._clustering(self.cluster_count,self.max_iter, self.run, self.epsilon, self.verbose, multinomial.log_probabilities,multinomial.fit_nonzero_parameters,**self.params)
         assert_equal(len(centroids), self.cluster_count)
         assert_equal(len(centroids[0]),dna.DNA.kmer_hash_count )
         assert_equal(np.sum(centroids,axis=1).all(),1)

@@ -51,10 +51,14 @@ class TestIsotropicGaussian(object):
         mu2 = np.log([2.0,1.0]).sum()/2.0
         mu,sigma = model.fit_parameters(x,expected_clustering = exp_clust)
         assert_equal(mu[0,0],mu0)
-        assert_equal(mu[1,0],mu1)
-        assert_equal(mu[2,0],mu2)
+        assert_equal(mu[0,1],mu1)
+        assert_equal(mu[0,2],mu2)
 
-        sigma_test = np.array([(x[i,0] - mu[0])**2 + (x[i,1] -mu[1])**2 + (x[i,2]-mu[2])**2 for i in range(2)]).sum()
+        assert_equal(mu.shape,(1,3))
+
+        diff_vec = [(x[i,0] - mu0)**2 + (x[i,1] -mu1)**2 + (x[i,2]-mu2)**2 for i in range(2)]
+        sigma_test = np.array(diff_vec).sum()
+
         sigma_test /= 2.0
         
         assert_equal(sigma[0],sigma_test)
@@ -78,17 +82,17 @@ class TestIsotropicGaussian(object):
         mu21 = (np.log(2.0)*0.3+np.log(1.0)*0.9+np.log(1.0)*0.5+np.log(2.0)*0.8)/2.5
         mu,sigma = model.fit_parameters(x,expected_clustering = exp_clust)
         assert_almost_equal(mu[0,0],mu00)
-        assert_almost_equal(mu[1,0],mu10)
-        assert_almost_equal(mu[2,0],mu20)
+        assert_almost_equal(mu[0,1],mu10)
+        assert_almost_equal(mu[0,2],mu20)
 
-        assert_almost_equal(mu[0,1],mu01)
+        assert_almost_equal(mu[1,0],mu01)
         assert_almost_equal(mu[1,1],mu11)
-        assert_almost_equal(mu[2,1],mu21)
+        assert_almost_equal(mu[1,2],mu21)
 
-        sigma_test0 = np.array([((x[i,0] - mu[0,0])**2 + (x[i,1] -mu[1,0])**2 + (x[i,2]-mu[2,0])**2)*exp_clust[i,0] for i in range(4)]).sum()
+        sigma_test0 = np.array([((x[i,0] - mu[0,0])**2 + (x[i,1] -mu[0,1])**2 + (x[i,2]-mu[0,2])**2)*exp_clust[i,0] for i in range(4)]).sum()
         sigma_test0 /= 1.5
 
-        sigma_test1 = np.array([((x[i,0] - mu[0,1])**2 + (x[i,1] -mu[1,1])**2 + (x[i,2]-mu[2,1])**2)*exp_clust[i,1] for i in range(4)]).sum()
+        sigma_test1 = np.array([((x[i,0] - mu[1,0])**2 + (x[i,1] -mu[1,1])**2 + (x[i,2]-mu[1,2])**2)*exp_clust[i,1] for i in range(4)]).sum()
         sigma_test1 /= 2.5
         
         assert_almost_equal(sigma[0],sigma_test0)

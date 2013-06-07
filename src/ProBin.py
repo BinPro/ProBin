@@ -3,52 +3,18 @@
 """Script for clustering metagenomic contigs based on sequence composition and
 correlation between many samples."""
 import sys
-import os
 import pandas as p # Used by _get_coverage
 
 from Bio import SeqIO
-from datetime import datetime
 
-from probin.dna import DNA
+from probin.binning.clustering import cluster
+from probin.output import Output
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-
-def main(contigs,model,algorithm,cluster_count,verbose,**kwargs):
-    if kwargs['coverage'] is None:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model, cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7)
-    else:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, kwargs['model_coverage'], cluster_count=cluster_count ,centroids=None, max_iter=100, repeat=10,epsilon=1E-7,**kwargs)
+def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, expectation_func ,maximization_func, **kwargs):
+    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, **kwargs)
     return (clusters,clust_prob,centroids)
-
-
-def write_clustering_result(clusters, cluster_evaluation, centroids, arguments, output,start_time):
-    #CLUSTERING INFORMATION OUTPUT
-    RESULT=["#{divide}",
-            "#Start time: {start_time}, now: {curr_time}, diff: {diff_time}",
-            "#Clustering based on parameters: {args}",
-            "#Result written to files starting with: {directory}",
-            "#Clustering evaluation: {clust_prob}",
-            "#<Cluster sizes>",
-            "{cluster_freq}",
-            "{clusters}\n"]
-    curr_time = datetime.now()
-    repr_centroids = ["#Centroid {0},{1}".format(i,",".join(map(str,centroid))) for i,centroid in enumerate(centroids)]
-    cluster_sizes = [len(c) for c in clusters]
-    tot_c = float(sum(cluster_sizes))
-    cluster_freq = ["#Cluster {0}:\t{1}\t{2}".format(i,c,c/tot_c) for i,c in enumerate(cluster_sizes)]
-    cluster_contigs_id =  [ "Cluster {0}\t{1}".format(i,",".join([contig.id for contig in cluster]) )  for i,cluster in enumerate(clusters)]
-    params =   {"args":arguments, "clust_prob":cluster_evaluation,
-                "centroids":os.linesep.join(repr_centroids),
-                "divide":"="*70,
-                "directory":output,
-                "cluster_freq":os.linesep.join(cluster_freq),
-                "clusters":os.linesep.join(cluster_contigs_id),
-                "start_time":start_time,
-                "curr_time":curr_time,
-                "diff_time":(curr_time-start_time)}
-    with open(output,"w") as clustinf:
-        clustinf.write(os.linesep.join(RESULT).format(**params))
 
 def _get_contigs(arg_file):
     try:
@@ -73,57 +39,86 @@ def _get_coverage(arg_file):
         sys.exit(-1)
 
 if __name__=="__main__":
-    start =datetime.now()
     parser = main_parser()
     args = parser.parse_args()
     
+    params = {}
+    
+    #=============================
+    #Execute clustering    
+    #=============================
     if args.script == 'probin':
+        #=============================
+        #Import model and prep data for that
+        #=============================
         try:
-            model = __import__("probin.model.composition.{0}".format(args.model_composition),globals(),locals(),["*"],-1)
+            model = __import__("probin.model.{0}.{1}".format(args.model_type,args.model),globals(),locals(),["*"],-1)
+            params["centroids"] = args.centroids
+            if args.model_type == "composition":
+                from probin.dna import DNA
+                DNA.generate_kmer_hash(args.kmer)
+                contigs = _get_contigs(args.composition_file)
+                params["contigs"] = contigs
+                expectation_func = model.log_probabilities
+                maximization_func = model.fit_nonzero_parameters
+                ##Don't think this is needed:
+                #params["kmer"] = args.kmer
+                outfile = args.composition_file
+            elif args.model_type == "coverage":
+                coverage = _get_coverage(args.coverage_file)
+                params["coverage"] = coverage
+                params["first_data"] = args.first_data
+                params["last_data"] = args.last_data
+                params["read_length"] = args.read_length
+                expectation_func = model.log_probabilities
+                maximization_func = model.fit_nonzero_parameters
+                outfile = args.coverage_file
+            elif args.model_type == "combined":
+                from probin.dna import DNA
+                DNA.generate_kmer_hash(args.kmer)
+                contigs = _get_contigs(args.composition_file)
+                params["contigs"] = contigs
+                coverage = _get_coverage(args.coverage_file)
+                params["coverage"] = coverage
+                params["first_data"] = args.first_data
+                params["last_data"] = args.last_data
+                params["read_length"] = args.read_length
+                outfile = "_".join([args.composition_file,args.coverage_file])
         except ImportError:
-            print "Failed to load module {0}. Will now exit".format(args.model_composition)
+            print "Failed to load module {0}.{1}. Will now exit".format(args.model_type,args.model)
             sys.exit(-1)
+
+        #=============================
+        #Import clustering algorithm
+        #=============================
         try:
             algorithm = __import__("probin.binning.{0}".format(args.algorithm),globals(),locals(),["*"],-1)
+            cluster_func = algorithm._clustering
         except ImportError:
             print "Failed to load module {0}. Will now exit".format(args.algorithm)
             sys.exit(-1)
-        if args.model_coverage is not 'None':
-            try:
-                model_coverage = __import__("probin.model.coverage.{0}".format(args.model_coverage),globals(),locals(),["*"],-1)
-            except ImportError:
-                print "Failed to load module {0}. Will now exit".format(args.model_composition)
-                sys.exit(-1)
-        else:
-            model_coverage = None
-
-        if args.verbose:
-            print >> sys.stderr, "parameters: %s" % (args)
-            print >> sys.stderr, "Reading file and generating contigs"
-
-        if not os.path.isdir(os.path.abspath(args.output)):
-            args.output = os.getcwd()
-        output = os.sep.join([os.path.abspath(args.output),"{0}_k{1}_c{2}_{3}".format(os.path.basename(args.file),args.kmer,args.cluster_count,args.algorithm)])
-        if os.path.isfile(output):
-            output = "{0}_{1}".format(output,datetime.now().strftime("%Y-%m-%d-%H.%M"))
-        print >> sys.stderr, "Result files created in: %s" % (os.path.dirname(output))
             
+        #=============================
+        #Prep output settings
+        #=============================
+        #TODO: Needs to be fixed to allow only coverage etc.
+        Output.set_output_path(outfile,args)
 
-        if args.verbose:
-            print >> sys.stderr, "parameters: %s" %(args)
-        
-        DNA.generate_kmer_hash(args.kmer)
-    
-        contigs = _get_contigs(args.file)
-        if model_coverage:
-            coverage = _get_coverage(args.coverage_file)
-        else:
-            coverage = None
+        #=============================
+        #Calling clustering
+        #=============================
+        (clusters,clust_prob,centroids) = main(cluster_func, args.cluster_count,args.iterations,args.runs,args.epsilon,\
+                                            args.verbose,args.serial, expectation_func ,maximization_func, **params)
 
-        (clusters,clust_prob,centroids) = main(contigs,model,algorithm,args.cluster_count, args.verbose, model_coverage=model_coverage,coverage=coverage, last_data=args.last_data,first_data=args.first_data,read_length=args.read_length)
 
-        write_clustering_result(clusters,clust_prob,centroids,args,output,start)
+        #=============================
+        #Printing Results
+        #=============================
+        Output.write_clustering_result(clusters,clust_prob,centroids,args)
 
+    #=============================
+    #Preprocess timeseries data for coverage
+    #=============================
     elif args.script == 'preprocess':
         if args.output:
             args.output = open(args.output,'w+')
