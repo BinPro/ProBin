@@ -14,12 +14,13 @@ class Output(object):
     start_time = None
     
     @classmethod
-    def set_output_path(self,path,data_file,kmer_length,cluster_count,algorithm):
+    def set_output_path(self,data_file,args):
         self.start_time = datetime.now()
-        if not os.path.isdir(os.path.abspath(path)):
-            path = os.getcwd()
-        self.path = path
-        self.file_name = "{0}_k{1}_c{2}_{3}".format(os.path.basename(data_file),kmer_length,cluster_count,algorithm)
+        if not os.path.isdir(os.path.abspath(args.output)):
+            self.path = os.getcwd()
+        else:
+            self.path = args.output
+        self.file_name = "{0}_k{1}_c{2}_{3}".format(os.path.basename(data_file),args.kmer,args.cluster_count,args.algorithm)
         if os.path.isfile(os.path.join(self.path,self.file_name)):
             self.file_name = "{0}_no_override_{1}".format(self.file_name,datetime.now().strftime("%Y-%m-%d-%H.%M.%S"))
         print >> sys.stderr, "Result files created in {0} as {1}:".format(self.path,self.file_name)
