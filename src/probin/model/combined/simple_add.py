@@ -2,10 +2,10 @@ import sys
 from probin.model.composition import multinomial
 from probin.model.coverage import isotropic_gaussian
 
-def log_probability(seq,cov_matrix,prob_vector,mu,sigma):
+def log_probability(seq,cov_matrix,prob_vector,mu,sigma,factor=1):
     ig_p = isotropic_gaussian.log_pdf(cov_matrix,mu,sigma)
     mu_p = multinomial.log_probability(seq,prob_vector)
-    return ig_p+mu_p
+    return ig_p*factor+mu_p
 
 
 def fit_nonzero_parameters(dna_l,cov_matrix=None,expected_clustering=None,**kwargs):
