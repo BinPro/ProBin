@@ -32,8 +32,11 @@ class TestKmeans(object):
             
         for contig in self.contigs:
             contig.calculate_signature()
-            
-
+        self.params = {"contigs":self.contigs}    
+	self.max_iter = 150
+	self.run = 3
+	self.epsilon = 0.001
+	self.verbose = False
     def tearDown(self):
         reload(dna)
         self.contigs = []
@@ -60,8 +63,8 @@ class TestKmeans(object):
         correct_centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2], self.contigs[3]])
         correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,correct_centroids)
         correct_clust_prob = kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters,correct_centroids)
-        
-        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,self.cluster_count,centroids)
+       	self.params["centroids"] = correct_centroids
+        (clusters, clust_prob,new_centroids) = kmeans._clustering(self.cluster_count, self.max_iter, self.run, self.epsilon, self.verbose, multinomial.log_probabilities, multinomial.fit_nonzero_parameters, **self.params)
         print clust_prob
         assert_almost_equal(0, min(np.abs(clust_prob - np.array([-1659.9510320847476, -1652.322663414292, -1658.28785337, -1665.52431153]))))
         
@@ -70,17 +73,18 @@ class TestKmeans(object):
         centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0],self.contigs[1]])
         centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2],self.contigs[3]])
         correct_clusters = kmeans._expectation(self.contigs,multinomial.log_probabilities,centroids)        
-
-        (clusters, clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,self.cluster_count,centroids)
         
+       	self.params["centroids"] = centroids
+        (clusters, clust_prob,new_centroids) = kmeans._clustering(self.cluster_count, self.max_iter, self.run, self.epsilon, self.verbose, multinomial.log_probabilities, multinomial.fit_nonzero_parameters, **self.params)
         assert_equal(kmeans._evaluate_clustering(multinomial.log_probabilities, correct_clusters, centroids),clust_prob)
 
     def test_cluster_semi_center(self):
         centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0]])
         centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2]])
-        (clusters,clust_prob,new_centroids) = kmeans.cluster(self.contigs,multinomial.log_probabilities,multinomial.fit_nonzero_parameters,2,centroids)
 
+       	self.params["centroids"] = centroids
+        (clusters, clust_prob,new_centroids) = kmeans._clustering(self.cluster_count, self.max_iter, self.run, self.epsilon, self.verbose, multinomial.log_probabilities, multinomial.fit_nonzero_parameters, **self.params)
         correct_centroids = np.zeros((self.cluster_count,dna.DNA.kmer_hash_count))
         correct_centroids[0,:] = multinomial.fit_nonzero_parameters([self.contigs[0], self.contigs[1]])
         correct_centroids[1,:] = multinomial.fit_nonzero_parameters([self.contigs[2], self.contigs[3]])

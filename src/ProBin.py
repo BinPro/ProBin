@@ -7,17 +7,13 @@ import pandas as p # Used by _get_coverage
 
 from Bio import SeqIO
 
-from probin.dna import DNA
+from probin.binning.clustering import cluster
 from probin.output import Output
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-
-def main(contigs,model_composition,algorithm,cluster_count,verbose,iterations,repeat,epsilon,**kwargs):
-    if kwargs['coverage'] is None:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, model_composition.log_probabilities ,model_composition.fit_nonzero_parameters, cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon, verbose=verbose, **kwargs)
-    else:
-        (clusters,clust_prob, centroids) = algorithm.cluster(contigs, kwargs['model_coverage'], cluster_count=cluster_count ,centroids=None, max_iter=iterations, repeat=repeat,epsilon=epsilon,verbose=verbose,**kwargs)
+def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, expectation_func ,maximization_func, **kwargs):
+    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, **kwargs)
     return (clusters,clust_prob,centroids)
 
 def _get_contigs(arg_file):
@@ -46,50 +42,70 @@ if __name__=="__main__":
     parser = main_parser()
     args = parser.parse_args()
     
+    params = {}
+    
+    #=============================
+    #Execute clustering    
+    #=============================
     if args.script == 'probin':
-        #Import composition model and prep data for that
-        if args.model_composition is not None:
-            try:
-                model_composition = __import__("probin.model.composition.{0}".format(args.model_composition),globals(),locals(),["*"],-1)
+        #=============================
+        #Import model and prep data for that
+        #=============================
+        try:
+            model = __import__("probin.model.{0}.{1}".format(args.model_type,args.model),globals(),locals(),["*"],-1)
+            params["centroids"] = args.centroids
+            if args.model_type == "composition":
+                from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
                 contigs = _get_contigs(args.file)
+                params["contigs"] = contigs
+                expectation_func = model.log_probabilities
+                maximization_func = model.fit_nonzero_parameters
+                ##Don't think this is needed:
+                #params["kmer"] = args.kmer
+            elif args.model_type == "coverage":
+                coverage = _get_coverage(args.file)
+                params["coverage"] = coverage
+                params["first_data"] = args.first_data
+                params["last_data"] = args.last_data
+                params["read_length"] = args.read_length
+                expectation_func = model.log_probabilities
+                maximization_func = model.fit_nonzero_parameters                
+        except ImportError:
+            print "Failed to load module {0}.{1}. Will now exit".format(args.model_type,args.model)
+            sys.exit(-1)
 
-            except ImportError:
-                print "Failed to load module {0}. Will now exit".format(args.model_composition)
-                sys.exit(-1)
-        else:
-            model_composition=None
-        
-        #Import coverage model and prep data for that
-        if args.model_coverage is not None:
-            try:
-                model_coverage = __import__("probin.model.coverage.{0}".format(args.model_coverage),globals(),locals(),["*"],-1)
-                coverage = _get_coverage(args.coverage_file)
-
-            except ImportError:
-                print "Failed to load module {0}. Will now exit".format(args.model_coverage)
-                sys.exit(-1)
-        else:
-            model_coverage = None
-            coverage = None
-
+        #=============================
         #Import clustering algorithm
+        #=============================
         try:
             algorithm = __import__("probin.binning.{0}".format(args.algorithm),globals(),locals(),["*"],-1)
+            cluster_func = algorithm._clustering
         except ImportError:
             print "Failed to load module {0}. Will now exit".format(args.algorithm)
             sys.exit(-1)
-
+            
+        #=============================
         #Prep output settings
+        #=============================
+        #TODO: Needs to be fixed to allow only coverage etc.
         Output.set_output_path(args.output,args.file,args.kmer,args.cluster_count,args.algorithm)
-        
-    
+
+        #=============================
+        #Calling clustering
+        #=============================
+        (clusters,clust_prob,centroids) = main(cluster_func, args.cluster_count,args.iterations,args.runs,args.epsilon,\
+                                            args.verbose,args.serial, expectation_func ,maximization_func, **params)
 
 
-        (clusters,clust_prob,centroids) = main(contigs,model_composition,algorithm,args.cluster_count, args.verbose, args.iterations, args.repeat,args.epsilon, model_coverage=model_coverage,coverage=coverage, last_data=args.last_data,first_data=args.first_data,read_length=args.read_length)
-
+        #=============================
+        #Printing Results
+        #=============================
         Output.write_clustering_result(clusters,clust_prob,centroids,args)
 
+    #=============================
+    #Preprocess timeseries data for coverage
+    #=============================
     elif args.script == 'preprocess':
         if args.output:
             args.output = open(args.output,'w+')
