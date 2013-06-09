@@ -7,13 +7,13 @@ from probin.binning import kmeans
 from probin.output import Output
 from itertools import izip
 
-def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, p **kwargs):
+def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, p, **kwargs):
     contigs = kwargs["composition"]
     if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
         print >> sys.stderr, "Model coverage in em"
         sys.exit(-1)
     if not np.any(p):
-        clustering,_, p = kmeans._clustering(cluster_count, max_iter=3, run=run, epsilon=epsilon, verbose=verbose, log_probabilities_func=log_probabilities_func, fit_nonzero_parameters_func=fit_nonzero_parameters_func, **kwargs)
+        clustering,_, p = kmeans._clustering(cluster_count, max_iter=3, run=run, epsilon=epsilon, verbose=verbose, log_probabilities_func=log_probabilities_func, fit_nonzero_parameters_func=fit_nonzero_parameters_func, p=p, **kwargs)
         n = np.array([len(cluster) for cluster in clustering])
         exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probabilities_func,p)
         z = _expectation(contigs,n,exp_log_qs)
@@ -112,9 +112,7 @@ def _evaluate_clustering(contigs, log_probabilities_func, p, z):
     return clustering_prob, exp_log_qs, max_log_qs
 
 def _get_exp_log_qs(contigs,log_probabilities_func,p):
-    log_qs = np.zeros((len(contigs),len(p)))
-    for i,contig in enumerate(contigs):
-        log_qs[i] = log_probabilities_func(contig,p)
+    log_qs = log_probabilities_func(contigs,p)
     max_log_qs = np.max(log_qs,axis=1,keepdims=True)
     exp_log_qs = np.exp(log_qs - max_log_qs)
     return exp_log_qs, max_log_qs

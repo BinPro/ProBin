@@ -5,13 +5,13 @@ import numpy as np
 import sys
 from random import randint
 from os import getpid
-from itertools import izip
-def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, centroids, **kwargs):
+
+def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, p, **kwargs):
     contigs = kwargs["composition"]
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
-    if not np.any(centroids):
+    if not np.any(p):
         #centroids = _generate_centroids(contigs,cluster_count, DNA.kmer_hash_count,rs)
-        centroids = _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
+        p = _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
        
     prev_prob = -np.inf
     prob_diff = np.inf
@@ -19,11 +19,11 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
 
     while (prob_diff >= epsilon and max_iter-iteration > 0):
 
-        cluster_ind = _expectation(contigs, log_probabilities_func, centroids, **kwargs)
+        cluster_ind = _expectation(contigs, log_probabilities_func, p, **kwargs)
 
-        centroids = _maximization(contigs, fit_nonzero_parameters_func, cluster_ind, centroids, rs)
+        p = _maximization(contigs, fit_nonzero_parameters_func, cluster_ind, p, rs)
         
-        curr_prob = _evaluate_clustering(contigs, log_probabilities_func, cluster_ind, centroids)
+        curr_prob = _evaluate_clustering(contigs, log_probabilities_func, cluster_ind, p)
         prob_diff = curr_prob - prev_prob 
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         iteration += 1
@@ -32,8 +32,8 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
     if prob_diff < 0:
         print>>sys.stderr, "Kmeans got worse, diff: {0}".format(prob_diff)
     print >> sys.stderr, "Kmeans iterations: {0}".format(iteration)
-    clusters = [kwargs["ids"][cluster_ind==i] for i in xrange(len(centroids))]
-    return (clusters, curr_prob, centroids)
+    clusters = [kwargs["ids"][cluster_ind==i] for i in xrange(len(p))]
+    return (clusters, curr_prob, p)
 def _expectation(contigs, log_probabilities_func, centroids, **kwargs):
     prob = log_probabilities_func(contigs,centroids)
     cluster_ind = np.argmax(prob,axis=1)
