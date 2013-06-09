@@ -6,7 +6,6 @@ import sys
 from random import randint
 from os import getpid
 from itertools import izip
-@profile
 def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, centroids, **kwargs):
     contigs = kwargs["composition"]
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
@@ -35,12 +34,10 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
     print >> sys.stderr, "Kmeans iterations: {0}".format(iteration)
     clusters = [kwargs["ids"][cluster_ind==i] for i in xrange(len(centroids))]
     return (clusters, curr_prob, centroids)
-@profile
 def _expectation(contigs, log_probabilities_func, centroids, **kwargs):
     prob = log_probabilities_func(contigs,centroids)
     cluster_ind = np.argmax(prob,axis=1)
     return cluster_ind
-@profile
 def _maximization(contigs, fit_nonzero_parameters_func, cluster_ind, centroids,rs):
     centroids[:] = 0
     for i in xrange(len(centroids)):
@@ -54,13 +51,11 @@ def _maximization(contigs, fit_nonzero_parameters_func, cluster_ind, centroids,r
             new_centroid = fit_nonzero_parameters_func(contigs[indexes])
         centroids[i] = new_centroid
     return centroids
-@profile
 def _generate_centroids(c_count,c_dim,rs):
     
     centroids = rs.rand(c_count,c_dim)
     centroids /= np.sum(centroids,axis=1,keepdims=True)
     return centroids
-@profile
 def _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,c_count,c_dim,rs):
     contigs_ind = np.ones(len(contigs)) == 1
     centroids = np.zeros((c_count,c_dim))
@@ -73,7 +68,6 @@ def _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_f
         contigs_ind[furthest] = False
         centroids[centroids_index] = fit_nonzero_parameters_func(contigs[furthest].reshape(1,-1))
     return centroids
-@profile
 def _evaluate_clustering(contigs,log_probabilities_func, cluster_ind, centroids):
     cluster_prob = 0
     for i in xrange(len(centroids)):

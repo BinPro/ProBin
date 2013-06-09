@@ -75,7 +75,8 @@ class TestMultinomial(object):
     def test_fit_nonzero_parameters(self):
         c = dna.DNA(id="hej",seq="AAAA")
         c.calculate_signature()
-        distribution = ml.fit_nonzero_parameters([c])
+	cc = np.fromiter(c.pseudo_counts,dtype=np.int) - 1
+        distribution = ml.fit_nonzero_parameters(cc.reshape(1,-1))
         true_dist = np.ones(136)
         true_dist[0] = 2
         true_dist /= np.sum(true_dist)
@@ -84,7 +85,10 @@ class TestMultinomial(object):
     def test_fit_nonzero_parameters_multiple_contigs(self):
         c = dna.DNA(id="hej",seq="AAAA",calc_sign=True)
         d = dna.DNA(id="ja",seq="AAAA",calc_sign=True)
-        distribution = ml.fit_nonzero_parameters([c,d])
+	cc = np.fromiter(c.pseudo_counts,dtype=np.int) - 1
+        cd = np.fromiter(d.pseudo_counts,dtype=np.int) - 1
+
+        distribution = ml.fit_nonzero_parameters(np.array([cc,cd]))
         true_dist = np.ones(136)
         true_dist[0] = 3
         true_dist /= np.sum(true_dist)
