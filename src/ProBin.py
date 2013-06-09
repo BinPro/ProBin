@@ -4,6 +4,7 @@
 correlation between many samples."""
 import sys
 import pandas as p # Used by _get_coverage
+import numpy as np
 
 from Bio import SeqIO
 
@@ -12,11 +13,11 @@ from probin.output import Output
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, expectation_func ,maximization_func, **kwargs):
-    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, **kwargs)
+def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, expectation_func ,maximization_func, centroids, **kwargs):
+    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, centroids, **kwargs)
     return (clusters,clust_prob,centroids)
 
-def _get_contigs(arg_file):
+def _get_composition(arg_file):
     try:
         with open(arg_file) as handle:
             seqs = list(SeqIO.parse(handle,"fasta"))
@@ -26,10 +27,14 @@ def _get_contigs(arg_file):
     except Exception as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
-
     contigs = [DNA(x.id, x.seq.tostring().upper(), calc_sign=True) for x in seqs]
-
-    return contigs
+    composition = np.zeros((len(contigs),DNA.kmer_hash_count))
+    ids = []
+    for i,contig in enumerate(contigs):
+        composition[i] = np.fromiter(contig.pseudo_counts,dtype=np.int) - 1
+        ids.append(contig.id)
+    
+    return composition,np.array(ids)
 
 def _get_coverage(arg_file):
     try:
@@ -53,12 +58,13 @@ if __name__=="__main__":
         #=============================
         try:
             model = __import__("probin.model.{0}.{1}".format(args.model_type,args.model),globals(),locals(),["*"],-1)
-            params["centroids"] = args.centroids
+            centroids = None
             if args.model_type == "composition":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
-                contigs = _get_contigs(args.composition_file)
-                params["contigs"] = contigs
+                composition,ids = _get_composition(args.composition_file)
+                params["composition"] = composition
+                params["ids"] = ids
                 expectation_func = model.log_probabilities
                 maximization_func = model.fit_nonzero_parameters
                 ##Don't think this is needed:
@@ -76,8 +82,9 @@ if __name__=="__main__":
             elif args.model_type == "combined":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
-                contigs = _get_contigs(args.composition_file)
-                params["contigs"] = contigs
+                composition,ids = _get_composition(args.composition_file)
+                params["composition"] = composition
+                params["ids"] = ids
                 coverage = _get_coverage(args.coverage_file)
                 params["coverage"] = coverage
                 params["first_data"] = args.first_data
@@ -108,7 +115,7 @@ if __name__=="__main__":
         #Calling clustering
         #=============================
         (clusters,clust_prob,centroids) = main(cluster_func, args.cluster_count,args.iterations,args.runs,args.epsilon,\
-                                            args.verbose,args.serial, expectation_func ,maximization_func, **params)
+                                            args.verbose,args.serial, expectation_func ,maximization_func, centroids, **params)
 
 
         #=============================

@@ -9,9 +9,9 @@ import numpy as np
 from multiprocessing import Pool, cpu_count
 
 
-def cluster(cluster_func, cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, **kwargs):
+def cluster(cluster_func, cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, centroids, **kwargs):
     (max_clusters, max_clustering_prob,max_centroids) = (None, -np.inf, None)
-    params = [(cluster_func, cluster_count, iterations, run, epsilon, verbose, expectation_func,maximization_func, kwargs) for run in xrange(runs)]
+    params = [(cluster_func, cluster_count, iterations, run, epsilon, verbose, expectation_func,maximization_func, centroids, kwargs) for run in xrange(runs)]
     if not serial:
         try:
             pool = Pool(processes=cpu_count())

@@ -7,9 +7,8 @@ from probin.binning import kmeans
 from probin.output import Output
 from itertools import izip
 
-def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, **kwargs):
-    contigs = kwargs["contigs"]
-    p = kwargs["centroids"]
+def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, p **kwargs):
+    contigs = kwargs["composition"]
     if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
         print >> sys.stderr, "Model coverage in em"
         sys.exit(-1)
@@ -31,14 +30,11 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
     
     while(max_iter - iteration > 0 and prob_diff >= epsilon):
         z = _expectation(contigs,n,exp_log_qs)
-        p = _maximization(contigs,fit_nonzero_parameters_func,z)        
-        curr_prob, exp_log_qs, max_log_qs = _evaluate_clustering(contigs,log_probabilities_func,p,z)        
-        n = np.sum(z,axis=0,keepdims=True)
-        
-        
+        p = _maximization(contigs, fit_nonzero_parameters_func,z)
+        curr_prob,exp_log_qs,max_log_qs = _evaluate_clustering(contigs,log_probabilities_func,p,z)
         prob_diff = curr_prob - prev_prob
         if verbose:
-            _log_current_status(contigs,curr_prob,p,z,run)
+            _log_current_status(contigs,curr_prob,z,p,run)
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         iteration += 1
     #Change back so curr_prob represents the highest probability
@@ -49,7 +45,7 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
 
     return (clustering, curr_prob, p)
 
-def _log_current_status(contigs,cluster_prob,p,z,run):
+def _log_current_status(contigs,cluster_prob,z,p,run):
     clustering = _get_current_clustering(contigs,p,z)
     Output.write_clustering_result(clustering,cluster_prob ,p,arguments=None,tmpfile=True,tmpfile_suffix=run)    
 

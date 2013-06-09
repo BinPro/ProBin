@@ -14,16 +14,10 @@ def fit_parameters(dna_l):
     par /= np.sum(par)
     return par
 
-def fit_nonzero_parameters(dna_l,expected_clustering=None):
-    pseudo_sig = np.zeros((len(dna_l),dna_l[0].kmer_hash_count))
-    for i,dna in enumerate(dna_l):
-        pseudo_sig[i,:] = np.fromiter(dna.pseudo_counts,dtype=np.int) - 1
+def fit_nonzero_parameters(composition,expected_clustering=None):
     if expected_clustering == None:
-        expected_clustering = np.ones((1,len(dna_l)))
-    else:
-        expected_clustering= expected_clustering.T
-    pseudo_sig = expected_clustering.dot(pseudo_sig)
-    pseudo_sig += 1
+        expected_clustering = np.ones((len(composition),1))
+    pseudo_sig = (expected_clustering.T).dot(composition) + 1
     pseudo_sig /= np.sum(pseudo_sig,axis=1,keepdims=True)
     if len(pseudo_sig) == 1:
         pseudo_sig = pseudo_sig[0]
@@ -37,13 +31,13 @@ def log_probability(seq, prob_vector):
 
     return np.sum((signature_vector * np.log(prob_vector)) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))
 
-def log_probabilities(seq, prob_vectors):
+def log_probabilities(composition, prob_vectors):
     if len(prob_vectors.shape) == 1:
-        prob_vectors = np.array([prob_vectors])
-    signature_vector = np.zeros(seq.kmer_hash_count)
-    for key,value in seq.signature.iteritems():
-        signature_vector[key] = value
-    return np.sum((signature_vector * np.log(prob_vectors)) - _log_fac(signature_vector),axis=1) + _log_fac(np.sum(signature_vector))
+        prob_vectors = np.array([prob_vectors])    
+    log_qs = np.zeros((len(composition),len(prob_vectors)))
+    for i,sign in enumerate(composition):
+        log_qs[i] = np.sum((sign * np.log(prob_vectors)) - _log_fac(sign),axis=1) + _log_fac(np.sum(sign))
+    return log_qs
 
 
 def _log_fac(i):

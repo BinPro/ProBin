@@ -1,7 +1,5 @@
 import scipy.stats
 import numpy as np
-import math
-import sys
 
 def pdf(x,mu,sigma):
     return scipy.stats.norm.pdf(x,loc=mu,scale=sigma).prod()
