@@ -16,7 +16,7 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
         clustering,_, p = kmeans._clustering(cluster_count, max_iter=3, run=run, epsilon=epsilon, verbose=verbose, log_probabilities_func=log_probabilities_func, fit_nonzero_parameters_func=fit_nonzero_parameters_func, p=p, **kwargs)
         n = np.array([len(cluster) for cluster in clustering])
         exp_log_qs, max_log_qs = _get_exp_log_qs(contigs,log_probabilities_func,p)
-        z = _expectation(contigs,n,exp_log_qs)
+        z = _expectation(n,exp_log_qs)
         prev_prob,_,_ = _evaluate_clustering(contigs, log_probabilities_func, p, z)
 
     else:
@@ -29,7 +29,7 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
     iteration = 0
     
     while(max_iter - iteration > 0 and prob_diff >= epsilon):
-        z = _expectation(contigs,n,exp_log_qs)
+        z = _expectation(n,exp_log_qs)
         p = _maximization(contigs, fit_nonzero_parameters_func,z)
         curr_prob,exp_log_qs,max_log_qs = _evaluate_clustering(contigs,log_probabilities_func,p,z)
         prob_diff = curr_prob - prev_prob
@@ -45,18 +45,18 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
 
     return (clustering, curr_prob, p)
 
-def _log_current_status(contigs,cluster_prob,z,p,run):
-    clustering = _get_current_clustering(contigs,p,z)
-    Output.write_clustering_result(clustering,cluster_prob ,p,arguments=None,tmpfile=True,tmpfile_suffix=run)    
+def _log_current_status(cluster_prob,z,p,run,**kwargs):
+    clustering = _get_current_clustering(p,z,**kwargs)
+    Output.write_clustering_result(clustering,cluster_prob ,p,arguments=None,tmpfile=True,tmpfile_suffix=run)
 
-def _get_current_clustering(contigs, p, z):
+def _get_current_clustering(contigs, p, z, **kwargs):
     clustering = [set() for _ in xrange(len(p))]
     which_cluster = np.argmax(z,axis=1)
     for (contig,which) in izip(contigs,which_cluster):
         clustering[which].add(contig)
     return clustering
 
-def _expectation(contigs, n, exp_log_qs):
+def _expectation(n, exp_log_qs):
     """
     Usage: _expectation(contigs, p, n, exp_log_qs, max_log_qs)
     Return: The responsibility matrix for currenct p and n

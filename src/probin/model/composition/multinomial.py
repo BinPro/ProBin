@@ -4,6 +4,7 @@ from scipy.special import gammaln
 import numpy as np
 from collections import Counter
 import sys
+
 def fit_parameters(dna_l):
     sig = Counter()
     [sig.update(part.signature) for part in dna_l]
