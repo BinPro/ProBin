@@ -20,7 +20,10 @@ class Output(object):
             self.path = os.getcwd()
         else:
             self.path = args.output
-        self.file_name = "{0}_k{1}_c{2}_{3}".format(os.path.basename(data_file),args.kmer,args.cluster_count,args.algorithm)
+        if args.model_type =="composition":
+            self.file_name = "{0}_k{1}_c{2}_{3}".format(os.path.basename(data_file),args.kmer,args.cluster_count,args.algorithm)
+        elif args.model_type == "coverage":
+            self.file_name = "{0}_c{1}_first{2}_last{3}_read{4}".format(os.path.basename(data_file),args.cluster_count,args.first_data,args.last_data,args.algorithm)
         if os.path.isfile(os.path.join(self.path,self.file_name)):
             self.file_name = "{0}_no_override_{1}".format(self.file_name,datetime.now().strftime("%Y-%m-%d-%H.%M.%S"))
         print >> sys.stderr, "Result files created in {0} as {1}:".format(self.path,self.file_name)

@@ -39,6 +39,14 @@ class TestIsotropicGaussian(object):
 
         assert_almost_equal(np.log(p),p_test)
 
+    def test_log_pdf_two_(self):
+        mu = np.log(np.array([[0.5,3.0,5.0],[2.1,1.4,0.7]]))
+        sigma = 0.5
+        x = np.log(np.array([[0.5,3.0,5.0],[2.1,1.4,0.7]]))
+        p = model.pdf(x,mu,sigma)
+        p_test = model.log_pdf(x,mu,sigma)
+
+        assert_almost_equal(np.log(p),p_test)
     def test_fit_parameters_single_cluster(self):
         # A sample with two contigs, each with three data points.
         

@@ -24,9 +24,13 @@ def _get_composition(arg_file):
     except IOError as error:    
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
-    except Exception as error:
+    except IOError as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
+    except Exception as error:
+        print >> sys.stderr, "Error: {0}".format(error.message)
+        sys.exit(-1)
+                
     contigs = [DNA(x.id, x.seq.tostring().upper(), calc_sign=True) for x in seqs]
     composition = np.zeros((len(contigs),DNA.kmer_hash_count))
     ids = []
@@ -36,12 +40,15 @@ def _get_composition(arg_file):
     
     return composition,np.array(ids)
 
-def _get_coverage(arg_file):
+def _get_coverage(arg_file,first_data,last_data):
     try:
-        return p.io.parsers.read_table(arg_file,sep='\t',index_col=0)
-    except Exception as error:
+        df = p.io.parsers.read_table(arg_file,sep='\t',index_col=0)
+        return np.array(df.ix[:,first_data:last_data]), np.array(df.index)
+    except IOError as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
+    except Exception as error:
+        print >> sys.stderr, "Error: {0}".format(error)
 
 if __name__=="__main__":
     parser = main_parser()
@@ -63,30 +70,36 @@ if __name__=="__main__":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
                 composition,ids = _get_composition(args.composition_file)
-                params["composition"] = composition
+                params["contigs"] = composition
                 params["ids"] = ids
+                params["composition_features"] = composition.shape[1]
                 expectation_func = model.log_probabilities
                 maximization_func = model.fit_nonzero_parameters
                 ##Don't think this is needed:
                 #params["kmer"] = args.kmer
                 outfile = args.composition_file
             elif args.model_type == "coverage":
-                coverage = _get_coverage(args.coverage_file)
-                params["coverage"] = coverage
+                coverage,ids = _get_coverage(args.coverage_file,args.first_data,args.last_data)
+                params["contigs"] = coverage
+                params["ids"] = ids
+                params["coverage_features"] = coverage.shape[1]
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
-                expectation_func = model.log_probabilities
-                maximization_func = model.fit_nonzero_parameters
+                params["sigma"] = np.zeros(args.cluster_count)
+                expectation_func = model.log_pdf
+                maximization_func = model.fit_parameters
                 outfile = args.coverage_file
             elif args.model_type == "combined":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
-                composition,ids = _get_composition(args.composition_file)
-                params["composition"] = composition
+                composition,ids_comp = _get_composition(args.composition_file)
+                coverage, ids_cov = _get_coverage(args.coverage_file)
+                params["contigs"] = np.concatenate((composition,coverage),axis=1)
+                #TODO check if all contigs in both files
                 params["ids"] = ids
-                coverage = _get_coverage(args.coverage_file)
-                params["coverage"] = coverage
+                params["composition_features"] = composition.shape[1]
+                params["coverage_features"] = coverage.shape[1]
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
