@@ -33,10 +33,10 @@ class TestKmeans(object):
         for contig in self.contigs:
             contig.calculate_signature()
         self.params = {"contigs":self.contigs}    
-	self.max_iter = 150
-	self.run = 3
-	self.epsilon = 0.001
-	self.verbose = False
+        self.max_iter = 150
+        self.run = 3
+        self.epsilon = 0.001
+        self.verbose = False
     def tearDown(self):
         reload(dna)
         self.contigs = []
