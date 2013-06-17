@@ -3,7 +3,8 @@
 """Script for clustering metagenomic contigs based on sequence composition and
 correlation between many samples."""
 import sys
-import pandas as p # Used by _get_coverage
+import pandas as pd # Used by _get_coverage
+import numpy as np
 
 from Bio import SeqIO
 
@@ -12,8 +13,9 @@ from probin.output import Output
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, **kwargs):
-    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, **kwargs)
+
+def main(cluster_func,contigs,p,K,epsilon,iterations,runs,verbose,serial, **kwargs):
+    (clusters,clust_prob, centroids) = cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, serial, **kwargs)
     return (clusters,clust_prob,centroids)
 
 def _get_contigs(arg_file):
@@ -28,12 +30,12 @@ def _get_contigs(arg_file):
         sys.exit(-1)
 
     contigs = [DNA(x.id, x.seq.tostring().upper(), calc_sign=True) for x in seqs]
-
+    
     return contigs
 
 def _get_coverage(arg_file):
     try:
-        return p.io.parsers.read_table(arg_file,sep='\t',index_col=0)
+        return pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
     except Exception as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
@@ -53,16 +55,14 @@ if __name__=="__main__":
         #=============================
         try:
             model = __import__("probin.model.{0}.{1}".format(args.model_type,args.model),globals(),locals(),["*"],-1)
-            params["centroids"] = args.centroids
+            p = args.centroids
             if args.model_type == "composition":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
                 contigs = _get_contigs(args.composition_file)
-                params["contigs"] = contigs
                 outfile = args.composition_file
             elif args.model_type == "coverage":
-                coverage = _get_coverage(args.coverage_file)
-                params["coverage"] = coverage
+                contigs = _get_coverage(args.coverage_file)
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
@@ -71,9 +71,8 @@ if __name__=="__main__":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
                 contigs = _get_contigs(args.composition_file)
-                params["contigs"] = contigs
                 coverage = _get_coverage(args.coverage_file)
-                params["coverage"] = coverage
+                contigs = np.hstack(contigs,coverage)
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
@@ -101,8 +100,8 @@ if __name__=="__main__":
         #=============================
         #Calling clustering
         #=============================
-        (clusters,clust_prob,centroids) = main(cluster_func, args.cluster_count,args.iterations,args.runs,args.epsilon,\
-                                            args.verbose,args.serial, **params)
+        (clusters,clust_prob,centroids) = main(cluster_func, contigs, p, args.cluster_count,args.epsilon,args.iterations, \
+                                               args.runs,args.verbose,args.serial, **params)
 
 
         #=============================

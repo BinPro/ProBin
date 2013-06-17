@@ -3,37 +3,86 @@
 from scipy.special import gammaln
 import numpy as np
 from collections import Counter
+from random import randint
+from os import getpid
 import sys
 
 def em(contigs,p,**kwargs):
     pass
 
-def kmeans(contigs, p, cluster_count, epsilon, max_iter, **kwargs):
+def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())
+    #N number of contigs
+    #D number of features
+    #K number of clusters
+    N,D = contigs.shape
     #initialize centroids with random contigs
     if not np.any(p):
-        ind = rs.choice(contigs.shape[0],cluster_count,True)
-        indx = np.arange(contigs.shape[0])
-        p = np.zeros((cluster_count,contigs.shape[1]))
+        ind = rs.choice(N,K,True)
+        indx = np.arange(N)
+        p = np.zeros((K,D))
         for i,centroid in enumerate(ind):
             p[i] = fit_nonzero_parameters(contigs[indx==centroid])
-
+            
+    new_p = np.zeros(p.shape)
+    z = np.zeros((N,K))
     prev_prob = -np.inf
     prob_diff = np.inf
     iteration = 0
     
     while (prob_diff >= epsilon and max_iter-iteration > 0):
+        #================================
         #Expectation
-        prob = log_probabilities(contig,centroids)
-        clust_ind = np.argmax(prob)
-        clusters[clust_ind].add(contig)
-
-        centroids = _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids.shape,rs)
+        #================================
+        #Calculate responsibility
+        z[:] = log_probabilities(contigs,p)
+        #Find each contigs most likely cluster
+        clustering_ind = np.argmax(z)
         
-        curr_prob = _evaluate_clustering(log_probabilities_func, clusters, centroids)
+        #================================
+        #Maximization
+        #================================
+        # For ecah cluster
+        for K_ind in xrange(K):
+            #Gives boolean array with true for contigs belonging to cluster K
+            clustering_K_ind = clustering_ind == K_ind
+            #if empty, pick random contig to represent that clusters
+            if not clustering_K_ind.any():
+                new_centroid = np.arange(N) == rs.randint(0,N)
+                new_p[K_ind] = fit_nonzero_parameters(contigs[new_centroid])
+                print>>sys.stderr,"cluster {0} was empty in kmeans".format(K_ind)
+            #Fit the contigs that belong to this cluster to the center
+            else:
+                new_p[K_ind] = fit_nonzero_parameters(contigs[clustering_K_ind])
+
+        #================================
+        #Evaluation
+        #================================
+        curr_prob = 0
+        #for each cluster
+        for K_ind in xrange(K):
+            #create a boolean array representing that clusters so p[p_ind] is a 2D array (1xD)
+            p_ind = np.arange(K) == K_ind
+            #calculate log_probabilities of all contigs belonging to cluster k
+            curr_prob += np.sum(log_probabilities(contigs[clustering_ind==K_ind],new_p[p_ind]))
+        
         prob_diff = curr_prob - prev_prob 
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
-        iteration += 1
+        (p,new_p) = (new_p,p)
+        
+        iteration += 1        
+    
+    if prob_diff < 0:
+        print>>sys.stderr, "Kmeans got worse, diff: {0}".format(prob_diff)
+        (curr_prob,prev_prob) = (prev_prob,curr_prob)
+        (p,new_p) = (new_p,p)
+    print >> sys.stderr, "Kmeans iterations: {0}".format(iteration)
+    
+    #Get current clustering
+    z[:] = log_probabilities(contigs,p)
+    #Find each contigs most likely cluster
+    clustering = np.argmax(z)
+    return (clustering, curr_prob, p)
 
 def fit_parameters(dna_l):
     sig = Counter()
@@ -65,16 +114,16 @@ def log_probability(seq, prob_vector):
     for key,value in seq.signature.iteritems():
         signature_vector[key] = value
 
-    return np.sum((signature_vector * np.log(prob_vector)) - _log_fac(signature_vector)) + _log_fac(np.sum(signature_vector))
+    return np.sum((signature_vector * np.log(prob_vector)) - gammaln(signature_vector+1)) + gammaln(np.sum(signature_vector)+1)
 
-def log_probabilities(seq, prob_vectors):
+def log_probabilities(contigs, prob_vectors):
     if len(prob_vectors.shape) == 1:
-        prob_vectors = np.array([prob_vectors])
-    signature_vector = np.zeros(seq.kmer_hash_count)
-    for key,value in seq.signature.iteritems():
-        signature_vector[key] = value
-    return np.sum((signature_vector * np.log(prob_vectors)) - _log_fac(signature_vector),axis=1) + _log_fac(np.sum(signature_vector))
-
+        prob_vectors = np.array([prob_vectors])    
+    log_qs = np.zeros((contigs.shape[0],prob_vectors.shape[0]))
+    for i,sign in enumerate(contigs):
+        # gammaln produces the natural logarithm of the factorial of i-1
+        log_qs[i] = np.sum((sign * np.log(prob_vectors)) - gammaln(sign+1),axis=1) + gammaln(np.sum(sign)+1)
+    return log_qs
 
 def _log_fac(i):
     # gammaln produces the natural logarithm of the factorial of i-1
