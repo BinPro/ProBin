@@ -6,7 +6,7 @@ import sys
 from random import randint
 from os import getpid
 
-def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, **kwargs):
+def _clustering_XXXXX_NOT_USED(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, **kwargs):
     contigs = kwargs["contigs"]
     centroids = kwargs["centroids"]
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    

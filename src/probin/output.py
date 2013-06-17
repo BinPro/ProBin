@@ -26,7 +26,7 @@ class Output(object):
         print >> sys.stderr, "Result files created in {0} as {1}:".format(self.path,self.file_name)
     
     @classmethod
-    def write_clustering_result(self,clusters, cluster_evaluation, centroids, arguments="", tmpfile=False,tmpfile_suffix=""):
+    def write_clustering_result(self,clusters, cluster_evaluation, centroids, idx=None, arguments="", tmpfile=False,tmpfile_suffix=""):
         if not self.path or not self.file_name:
             print >> sys.stderr, "You need to call Output.set_output_path to initialize output"
             return None
@@ -43,10 +43,10 @@ class Output(object):
                 "{clusters}"]
         curr_time = datetime.now()
         repr_centroids = ["#Centroid {0},{1}".format(i,",".join(map(str,centroid))) for i,centroid in enumerate(centroids)]
-        cluster_sizes = [len(c) for c in clusters]
+        cluster_sizes = [len(idx[clusters==i]) for i,c in enumerate(centroids)]
         tot_c = float(sum(cluster_sizes))
         cluster_freq = ["#Cluster {0}\t{1}\t{2}".format(i,c,c/tot_c) for i,c in enumerate(cluster_sizes)]
-        cluster_contigs_id =  [ "{0},{1}".format(i,",".join([contig.id for contig in cluster]) )  for i,cluster in enumerate(clusters)]
+        cluster_contigs_id =  [ "{0},{1}".format(i,",".join(idx[clusters==i]) )  for i,c in enumerate(centroids)]
         params =   {"args":arguments, "clust_prob":cluster_evaluation,
                     "centroids":os.linesep.join(repr_centroids),
                     "divide":"="*70,

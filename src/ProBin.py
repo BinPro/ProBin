@@ -63,11 +63,14 @@ if __name__=="__main__":
         #=============================
         try:
             model = __import__("probin.model.{0}.{1}".format(args.model_type,args.model),globals(),locals(),["*"],-1)
+            #clustering method            
             if args.algorithm == "em":
                 cluster_func = model.em
             elif args.algorithm == "kmeans":
                 cluster_func = model.kmeans
+            #centroids
             p = args.centroids
+            #data type
             if args.model_type == "composition":
                 contigs,idx = _get_contigs(args.composition_file,args.kmer)
                 outfile = args.composition_file
@@ -99,11 +102,11 @@ if __name__=="__main__":
         (clusters,clust_prob,centroids) = main(cluster_func, contigs, p, args.cluster_count,args.epsilon,args.iterations, \
                                                args.runs,args.verbose,args.serial, **params)
 
-
+        
         #=============================
         #Printing Results
         #=============================
-        Output.write_clustering_result(clusters,clust_prob,centroids,args)
+        Output.write_clustering_result(clusters,clust_prob,centroids,idx,args)
 
     #=============================
     #Preprocess timeseries data for coverage

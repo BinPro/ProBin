@@ -7,7 +7,7 @@ from probin.binning import kmeans
 from probin.output import Output
 from itertools import izip
 
-def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, **kwargs):
+def _clustering_XXXXX_NOT_USED(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, **kwargs):
     contigs = kwargs["contigs"]
     p = kwargs["centroids"]
     if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
