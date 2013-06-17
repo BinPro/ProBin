@@ -36,9 +36,9 @@ def fit_parameters(contigs,expected_clustering=None):
     mu = np.dot(expected_clustering.T,contigs)
     mu /= n.T
     if N == 1:
-        sigma = np.ones(K)
+        sigma = np.ones((K,1))
     else:
-        sigma = np.zeros(K)
+        sigma = np.zeros((K,1))
         for k in xrange(K):
             sigma[k] = np.array([np.dot(expected_clustering[i,k]*(contigs[i,:]-mu[k,:]),(contigs[i,:]-mu[k,:]).T) for i in xrange(N)]).sum()/n[0,k]
 
@@ -118,7 +118,7 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     #K number of clusters
     N,D = contigs.shape
     #initialize centroids with random contigs
-    sigma = np.zeros(K)
+    sigma = np.zeros((K,1))
     if not np.any(p):
         ind = rs.choice(N,K,True)
         indx = np.arange(N)
@@ -149,11 +149,11 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
             #if empty, pick random contig to represent that clusters
             if not clustering_K_ind.any():
                 new_centroid = np.arange(N) == rs.randint(0,N)
-                p_new[K_ind] = fit_parameters(contigs[new_centroid])
+                p_new[K_ind],sigma[K_ind] = fit_parameters(contigs[new_centroid])
                 print>>sys.stderr,"cluster {0} was empty in kmeans".format(K_ind)
             #Fit the contigs that belong to this cluster to the center
             else:
-                p_new[K_ind] = fit_parameters(contigs[clustering_K_ind])
+                p_new[K_ind],sigma[K_ind] = fit_parameters(contigs[clustering_K_ind])
 
         #================================
         #Evaluation

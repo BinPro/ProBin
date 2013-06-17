@@ -40,10 +40,11 @@ def _get_contigs(arg_file,kmer):
     del contigs
     return composition,np.array(ids)
     
-def _get_coverage(arg_file,first_data,last_data):
+def _get_coverage(arg_file,first_data,last_data,read_length):
     try:
         df = pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
-        return np.array(df.ix[:,first_data:last_data]), np.array(df.index)
+        log_coverage = np.log(0.1+df.ix[:,first_data:last_data].astype(float)*read_length/1000)
+        return np.array(log_coverage), np.array(df.index)
     except Exception as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
@@ -75,7 +76,7 @@ if __name__=="__main__":
                 contigs,idx = _get_contigs(args.composition_file,args.kmer)
                 outfile = args.composition_file
             elif args.model_type == "coverage":
-                contigs,idx = _get_coverage(args.coverage_file,args.first_data,args.last_data)
+                contigs,idx = _get_coverage(args.coverage_file,args.first_data,args.last_data,args.read_length)
                 params["read_length"] = args.read_length
                 outfile = args.coverage_file
             elif args.model_type == "combined":
