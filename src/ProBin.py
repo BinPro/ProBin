@@ -86,7 +86,7 @@ if __name__=="__main__":
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
-                params["sigma"] = np.zeros(args.cluster_count)
+                params["sigma"] = np.zeros((args.cluster_count,1))
                 expectation_func = model.log_pdf
                 maximization_func = model.fit_parameters
                 outfile = args.coverage_file

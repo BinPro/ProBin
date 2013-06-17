@@ -8,7 +8,7 @@ from probin.output import Output
 from itertools import izip
 
 def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilities_func, fit_nonzero_parameters_func, p, **kwargs):
-    contigs = kwargs["composition"]
+    contigs=kwargs["contigs"]
     if 'model_coverage' in kwargs and kwargs['model_coverage'] is not None:
         print >> sys.stderr, "Model coverage in em"
         sys.exit(-1)
@@ -85,7 +85,7 @@ def _maximization(contigs, fit_nonzero_parameters_func, z):
     We are calculating the expression p_{k,j} = sum_i(<z_{i,k}>*theta_{i,j}) / sum_j( sum_i(<z_{i,k}>*theta_{i,j}))
     
     """
-    return fit_nonzero_parameters_func(contigs,expected_clustering=z)
+    return fit_nonzero_parameters_func(z,contigs)
     
 
 def _evaluate_clustering(contigs, log_probabilities_func, p, z):
@@ -112,7 +112,7 @@ def _evaluate_clustering(contigs, log_probabilities_func, p, z):
     return clustering_prob, exp_log_qs, max_log_qs
 
 def _get_exp_log_qs(contigs,log_probabilities_func,p):
-    log_qs = log_probabilities_func(contigs,p)
+    log_qs = log_probabilities_func(p,contigs)
     max_log_qs = np.max(log_qs,axis=1,keepdims=True)
     exp_log_qs = np.exp(log_qs - max_log_qs)
     return exp_log_qs, max_log_qs

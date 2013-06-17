@@ -1,18 +1,24 @@
 import scipy.stats
 import numpy as np
 
-def pdf(x,mu,sigma):
-    return scipy.stats.norm.pdf(x,loc=mu,scale=sigma).prod()
+def pdf(mu,contigs=None,**kwargs):
+    sigma=kwargs["sigma"]
+    qs = np.zeros((len(contigs),len(mu)))
+    for i,contig in enumerate(contigs):
+        qs[i] = scipy.stats.norm.pdf(contig,loc=mu,scale=sigma).prod(axis=1)
+    return qs
 
-def log_probabilities(x,mu_sigma):
-    mu,sigma = mu_sigma
-    return log_pdf(x,mu,sigma)
+#def log_probabilities(mu,contigs=None,**kwargs):
+#    return log_pdf(mu,sigma,contigs,**kwargs)
 
-def log_pdf(contigs,mu_sigma,**kwargs):
-    mu,sigma = mu_sigma
-    return np.log(scipy.stats.norm.pdf(contigs,loc=mu,scale=sigma)).sum()
+def log_pdf(mu,contigs=None,**kwargs):
+    sigma = kwargs["sigma"]
+    log_qs = np.zeros((len(contigs),len(mu)))
+    for i,contig in enumerate(contigs):
+        log_qs[i] = np.log(scipy.stats.norm.pdf(contig,loc=mu,scale=sigma[:len(mu)])).sum(axis=1)
+    return log_qs
 
-def fit_parameters(contigs,expected_clustering=None,**kwargs):
+def fit_parameters(expected_clustering=None,contigs=None,**kwargs):
     # Observe that mu will be 2-dimensional even though 
     # the number of clusters in expected_clustering is 1 or
     # if expected_clustering is undefined.
@@ -25,13 +31,13 @@ def fit_parameters(contigs,expected_clustering=None,**kwargs):
     K = n.shape[1] # The number of clusters
     mu = np.dot(expected_clustering.T,contigs)
     mu /= n.T
-    
+    sigma = kwargs["sigma"]
     if N == 1:
-        sigma = np.ones(K)
+        sigma[:] = 1
     else:
-        sigma = np.zeros(K)
+        sigma[:] = 0
         for k in xrange(K):
             sigma[k] = np.array([np.dot(expected_clustering[i,k]*(contigs[i,:]-mu[k,:]),(contigs[i,:]-mu[k,:]).T) for i in xrange(N)]).sum()/n[0,k]
 
-    return mu,sigma
+    return mu
 

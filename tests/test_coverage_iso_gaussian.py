@@ -3,6 +3,7 @@ import os
 import sys
 import fileinput
 from nose.tools import assert_equal, assert_true, assert_almost_equal
+from numpy.testing import assert_allclose
 import numpy as np
 import scipy.stats
 from Bio import SeqIO
@@ -22,18 +23,18 @@ class TestIsotropicGaussian(object):
         reload(dna)
             
     def test_pdf(self):
-        mu = np.log(np.array([0.5,3.0,5.0]))
+        mu = np.log(np.array([[0.5,3.0,5.0]]))
         sigma = 0.5
-        x = np.log(np.array([0.5,3.0,5.0]))
-        p0 = scipy.stats.norm.pdf(x[0],loc=mu[0],scale=sigma)
-        p1 = scipy.stats.norm.pdf(x[1],loc=mu[1],scale=sigma)
-        p2 = scipy.stats.norm.pdf(x[2],loc=mu[2],scale=sigma)
+        x = np.log(np.array([[0.5,3.0,5.0]]))
+        p0 = scipy.stats.norm.pdf(x[0][0],loc=mu[0][0],scale=sigma)
+        p1 = scipy.stats.norm.pdf(x[0][1],loc=mu[0][1],scale=sigma)
+        p2 = scipy.stats.norm.pdf(x[0][2],loc=mu[0][2],scale=sigma)
         p_test = model.pdf(x,mu,sigma)
         assert_equal(p0*p1*p2,p_test)
     def test_log_pdf(self):
-        mu = np.log(np.array([0.5,3.0,5.0]))
+        mu = np.log(np.array([[0.5,3.0,5.0]]))
         sigma = 0.5
-        x = np.log(np.array([0.5,3.0,5.0]))
+        x = np.log(np.array([[0.5,3.0,5.0]]))
         p = model.pdf(x,mu,sigma)
         p_test = model.log_pdf(x,mu,sigma)
 
@@ -45,8 +46,7 @@ class TestIsotropicGaussian(object):
         x = np.log(np.array([[0.5,3.0,5.0],[2.1,1.4,0.7]]))
         p = model.pdf(x,mu,sigma)
         p_test = model.log_pdf(x,mu,sigma)
-
-        assert_almost_equal(np.log(p),p_test)
+        assert_allclose(np.log(p),p_test)
     def test_fit_parameters_single_cluster(self):
         # A sample with two contigs, each with three data points.
         
@@ -56,7 +56,9 @@ class TestIsotropicGaussian(object):
         mu0 = np.log(np.array([0.5,3.0])).sum()/2.0
         mu1 = np.log([3.0,1.0]).sum()/2.0
         mu2 = np.log([2.0,1.0]).sum()/2.0
-        mu,sigma = model.fit_parameters(x,expected_clustering = exp_clust)
+        params = {"sigma":np.zeros(1)}
+        mu= model.fit_parameters(x,expected_clustering = exp_clust,**params)
+        sigma = params["sigma"]
         assert_equal(mu[0,0],mu0)
         assert_equal(mu[0,1],mu1)
         assert_equal(mu[0,2],mu2)
@@ -87,7 +89,10 @@ class TestIsotropicGaussian(object):
         mu01 = (np.log(0.5)*0.3+np.log(3.0)*0.9+np.log(2.5)*0.5+np.log(1.0)*0.8)/2.5
         mu11 = (np.log(3.0)*0.3+np.log(1.0)*0.9+np.log(1.5)*0.5+np.log(1.0)*0.8)/2.5
         mu21 = (np.log(2.0)*0.3+np.log(1.0)*0.9+np.log(1.0)*0.5+np.log(2.0)*0.8)/2.5
-        mu,sigma = model.fit_parameters(x,expected_clustering = exp_clust)
+        
+        params = {"sigma":np.zeros(2)}
+        mu = model.fit_parameters(x,expected_clustering = exp_clust,**params)
+        sigma = params["sigma"]
         assert_almost_equal(mu[0,0],mu00)
         assert_almost_equal(mu[0,1],mu10)
         assert_almost_equal(mu[0,2],mu20)
