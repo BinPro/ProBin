@@ -54,9 +54,11 @@ def _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids_shap
         new_centroids[clust_ind,:] = new_centroid
     return new_centroids
 
-def _generate_centroids(c_count,c_dim,rs):
-    centroids = rs.rand(c_count,c_dim)
-    centroids /= np.sum(centroids,axis=1,keepdims=True)
+def _generate_centroids(contigs,fit_nonzero_parameters_func,c_count,c_dim,rs): 
+    centroids_ind = rs.random.choice(xrange(c_count))
+    centroids = np.zeros((c_count,c_dim))
+    for i,centroid in enumerate(centroids_ind):
+        centroids[i] = fit_nonzero_parameters_func([contigs[centroid]])
     return centroids
 
 def _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,c_count,c_dim,rs):
