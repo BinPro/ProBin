@@ -12,8 +12,8 @@ from probin.output import Output
 from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
-def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, expectation_func ,maximization_func, **kwargs):
-    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, expectation_func,maximization_func, **kwargs)
+def main(cluster_func,cluster_count,iterations,runs,epsilon,verbose,serial, **kwargs):
+    (clusters,clust_prob, centroids) = cluster(cluster_func,cluster_count, iterations, runs, epsilon, verbose, serial, **kwargs)
     return (clusters,clust_prob,centroids)
 
 def _get_contigs(arg_file):
@@ -59,10 +59,6 @@ if __name__=="__main__":
                 DNA.generate_kmer_hash(args.kmer)
                 contigs = _get_contigs(args.composition_file)
                 params["contigs"] = contigs
-                expectation_func = model.log_probabilities
-                maximization_func = model.fit_nonzero_parameters
-                ##Don't think this is needed:
-                #params["kmer"] = args.kmer
                 outfile = args.composition_file
             elif args.model_type == "coverage":
                 coverage = _get_coverage(args.coverage_file)
@@ -70,8 +66,6 @@ if __name__=="__main__":
                 params["first_data"] = args.first_data
                 params["last_data"] = args.last_data
                 params["read_length"] = args.read_length
-                expectation_func = model.log_probabilities
-                maximization_func = model.fit_nonzero_parameters
                 outfile = args.coverage_file
             elif args.model_type == "combined":
                 from probin.dna import DNA
@@ -108,7 +102,7 @@ if __name__=="__main__":
         #Calling clustering
         #=============================
         (clusters,clust_prob,centroids) = main(cluster_func, args.cluster_count,args.iterations,args.runs,args.epsilon,\
-                                            args.verbose,args.serial, expectation_func ,maximization_func, **params)
+                                            args.verbose,args.serial, **params)
 
 
         #=============================

@@ -5,6 +5,36 @@ import numpy as np
 from collections import Counter
 import sys
 
+def em(contigs,p,**kwargs):
+    pass
+
+def kmeans(contigs, p, cluster_count, epsilon, max_iter, **kwargs):
+    rs = np.random.RandomState(seed=randint(0,10000)+getpid())
+    #initialize centroids with random contigs
+    if not np.any(p):
+        ind = rs.choice(contigs.shape[0],cluster_count,True)
+        indx = np.arange(contigs.shape[0])
+        p = np.zeros((cluster_count,contigs.shape[1]))
+        for i,centroid in enumerate(ind):
+            p[i] = fit_nonzero_parameters(contigs[indx==centroid])
+
+    prev_prob = -np.inf
+    prob_diff = np.inf
+    iteration = 0
+    
+    while (prob_diff >= epsilon and max_iter-iteration > 0):
+        #Expectation
+        prob = log_probabilities(contig,centroids)
+        clust_ind = np.argmax(prob)
+        clusters[clust_ind].add(contig)
+
+        centroids = _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids.shape,rs)
+        
+        curr_prob = _evaluate_clustering(log_probabilities_func, clusters, centroids)
+        prob_diff = curr_prob - prev_prob 
+        (curr_prob,prev_prob) = (prev_prob,curr_prob)
+        iteration += 1
+
 def fit_parameters(dna_l):
     sig = Counter()
     [sig.update(part.signature) for part in dna_l]

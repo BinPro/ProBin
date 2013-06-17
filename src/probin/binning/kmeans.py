@@ -11,7 +11,8 @@ def _clustering(cluster_count, max_iter, run, epsilon, verbose, log_probabilitie
     centroids = kwargs["centroids"]
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())    
     if not np.any(centroids):
-       centroids = _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
+        centroids = _generate_centroids(contigs,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
+        #centroids = _generate_kplusplus(contigs, log_probabilities_func,fit_nonzero_parameters_func,cluster_count,DNA.kmer_hash_count,rs)
        
     prev_prob = -np.inf
     prob_diff = np.inf
@@ -55,7 +56,7 @@ def _maximization(contigs, fit_nonzero_parameters_func, clusters, centroids_shap
     return new_centroids
 
 def _generate_centroids(contigs,fit_nonzero_parameters_func,c_count,c_dim,rs): 
-    centroids_ind = rs.random.choice(xrange(c_count))
+    centroids_ind = rs.choice(xrange(len(contigs)),c_count,True)
     centroids = np.zeros((c_count,c_dim))
     for i,centroid in enumerate(centroids_ind):
         centroids[i] = fit_nonzero_parameters_func([contigs[centroid]])
