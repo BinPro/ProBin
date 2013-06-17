@@ -30,9 +30,14 @@ def _get_contigs(arg_file):
         sys.exit(-1)
 
     contigs = [DNA(x.id, x.seq.tostring().upper(), calc_sign=True) for x in seqs]
+    composition = np.zeros((len(contigs),DNA.kmer_hash_count))
+    ids = []
+    for i,contig in enumerate(contigs):
+        composition[i] = np.fromiter(contig.pseudo_counts,dtype=np.int) - 1
+        ids.append(contig.id)
+    del contigs
+    return composition,np.array(ids)
     
-    return contigs
-
 def _get_coverage(arg_file):
     try:
         return pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
@@ -59,7 +64,7 @@ if __name__=="__main__":
             if args.model_type == "composition":
                 from probin.dna import DNA
                 DNA.generate_kmer_hash(args.kmer)
-                contigs = _get_contigs(args.composition_file)
+                contigs,idx = _get_contigs(args.composition_file)
                 outfile = args.composition_file
             elif args.model_type == "coverage":
                 contigs = _get_coverage(args.coverage_file)
