@@ -27,6 +27,7 @@ class Output(object):
     
     @classmethod
     def write_clustering_result(self,clusters, cluster_evaluation, centroids, idx=None, arguments="", tmpfile=False,tmpfile_suffix=""):
+        centroids,sigma = centroids        
         if not self.path or not self.file_name:
             print >> sys.stderr, "You need to call Output.set_output_path to initialize output"
             return None
