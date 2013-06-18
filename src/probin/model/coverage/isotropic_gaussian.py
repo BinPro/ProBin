@@ -38,9 +38,10 @@ def fit_parameters(contigs,expected_clustering=None):
     if N == 1:
         sigma = np.ones((K,1))
     else:
-        sigma = np.zeros((K,1))
-        for k in xrange(K):
-            sigma[k] = np.array([np.dot(expected_clustering[i,k]*(contigs[i,:]-mu[k,:]),(contigs[i,:]-mu[k,:]).T) for i in xrange(N)]).sum()/n[0,k]
+        #sigma = np.zeros((K,1))
+        sigma = np.ones((K,1))
+        #for k in xrange(K):
+        #    sigma[k] = np.array([np.dot(expected_clustering[i,k]*(contigs[i,:]-mu[k,:]),(contigs[i,:]-mu[k,:]).T) for i in xrange(N)]).sum()/n[0,k]
 
     return mu,sigma
 
@@ -60,11 +61,13 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         sys.exit(-1)
     
     n = np.array([len(contigs[clustering==c]) for c in xrange(K)],dtype=float)
-    
+
+    #Calculate z ones. it is then calculated in the evaluation and reused in next iteration
     log_qs = log_pdf(contigs,p,sigma)
     max_log_qs = np.max(log_qs,axis=1,keepdims=True)
     log_qs = np.exp(log_qs - max_log_qs)
 
+    #initialize
     prob_diff = np.inf
     prev_prob = -np.inf
     iteration = 0
@@ -73,14 +76,15 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         #================================
         #Expectation
         #================================
-        log_qs *= n
-        z = log_qs / np.sum(log_qs,axis=1,keepdims=True)
+        #Nothing since z values are calculated in evaluation in previous iteration
+        z = (log_qs*n) / np.sum((log_qs*n),axis=1,keepdims=True)
         
         #================================
         #Maximization
         #================================
         p_new, sigma = fit_parameters(contigs,z)
-        
+        n = np.sum(z,axis=0,keepdims=True)
+
         #================================
         #Evaluation
         #================================
@@ -90,8 +94,6 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
 
         curr_prob = np.sum((max_log_qs - np.log(np.sum(z*log_qs,axis=1,keepdims=True))))
         
-        n = np.sum(z,axis=0,keepdims=True)
-
         prob_diff = curr_prob - prev_prob
 
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
@@ -106,9 +108,9 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         (p,p_new) = (p_new,p)
         
     #Get current clustering
-    z = log_pdf(contigs,p,sigma)
+    log_qs = log_pdf(contigs,p,sigma)
     #Find each contigs most likely cluster
-    clustering = np.argmax(z,axis=1)
+    clustering = np.argmax(log_qs,axis=1)
     return (clustering, curr_prob, (p,sigma))
 
 def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
@@ -131,7 +133,8 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     log_qs = log_pdf(contigs,p,sigma)
     #Find each contigs most likely cluster
     clustering_ind = np.argmax(log_qs,axis=1)
-
+    
+    #Initialize
     p_new = np.zeros(p.shape)
     prev_prob = -np.inf
     prob_diff = np.inf
@@ -170,7 +173,7 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         #I am only picking the greatest one and using that.
         #These are the same number we would get from the expectation step in
         #next iteration so they are reused there.
-        log_qs = log_pdf(contigs,p,sigma)
+        log_qs = log_pdf(contigs,p_new,sigma)
         clustering_ind = np.argmax(log_qs,axis=1)
         
         #for each cluster
@@ -182,9 +185,11 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         
         prob_diff = curr_prob - prev_prob 
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
-        (p,p_new) = (p_new,p)
+        (p,p_new) = (p_new,p)        
+        iteration += 1    
+        print iteration
         
-        iteration += 1      
+        
     #reverse so curr_prob is the current probability
     (curr_prob,prev_prob) = (prev_prob,curr_prob)
     if prob_diff < 0:

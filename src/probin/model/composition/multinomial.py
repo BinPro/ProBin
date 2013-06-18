@@ -56,6 +56,7 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         #================================
         #Nothing since z values are calculated in evaluation in previous iteration
         z = (log_qs*n) / np.sum((log_qs*n),axis=1,keepdims=True)
+        
         #================================
         #Maximization
         #================================
@@ -85,9 +86,9 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         (p,p_new) = (p_new,p)
         
     #Get current clustering
-    z = log_probabilities(contigs,p)
+    log_qs = log_probabilities(contigs,p)
     #Find each contigs most likely cluster
-    clustering = np.argmax(z,axis=1)
+    clustering = np.argmax(log_qs,axis=1)
     return (clustering, curr_prob, p)
 
 def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
@@ -149,7 +150,7 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         #I am only picking the greatest one and using that.
         #These are the same number we would get from the expectation step in
         #next iteration so they are reused there.
-        log_qs = log_probabilities(contigs,p)
+        log_qs = log_probabilities(contigs,p_new)
         clustering_ind = np.argmax(log_qs,axis=1)
         
         #for each cluster

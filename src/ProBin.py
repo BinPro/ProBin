@@ -43,10 +43,10 @@ def _get_contigs(arg_file,kmer):
 def _get_coverage(arg_file,first_data,last_data,read_length):
     try:
         df = pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
-        c = 0.1+df.ix[:,first_data:last_data].astype(float)
-        ratios = float(read_length) / df.contig_length
-        log_coverage = np.log(c.mul(ratios,axis=0))
-        return np.array(log_coverage), np.array(log_coverage.index)
+        v = df.ix[:,first_data:last_data].values
+        from probin.model.coverage.log_coverage import read_mappings_to_log_coverage
+        return read_mappings_to_log_coverage(v,df.contig_length.values.reshape(-1,1),read_length), np.array(df.index)
+
     except Exception as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
         sys.exit(-1)
