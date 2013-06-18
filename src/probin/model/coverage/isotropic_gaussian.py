@@ -125,6 +125,13 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         p = np.zeros((K,D))
         for i,centroid in enumerate(ind):
             p[i],sigma[i] = fit_parameters(contigs[indx==centroid])
+            
+    #Calculate responsibility, I don't normalize since 
+    #I am only picking the greatest one and using that.
+    log_qs = log_pdf(contigs,p,sigma)
+    #Find each contigs most likely cluster
+    clustering_ind = np.argmax(log_qs,axis=1)
+
     p_new = np.zeros(p.shape)
     prev_prob = -np.inf
     prob_diff = np.inf
@@ -134,10 +141,8 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         #================================
         #Expectation
         #================================
-        #Calculate responsibility
-        z = log_pdf(contigs,p,sigma)
-        #Find each contigs most likely cluster
-        clustering_ind = np.argmax(z,axis=1)
+        #Nothing done since the log_qs and clustering_ind are
+        #already calculated in previous iteration
         
         #================================
         #Maximization
@@ -146,19 +151,28 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         for K_ind in xrange(K):
             #Gives boolean array with true for contigs belonging to cluster K
             clustering_K_ind = clustering_ind == K_ind
+            
+            #Fit the contigs that belong to this cluster to the center
+            if clustering_K_ind.any():
+                p_new[K_ind],sigma[K_ind] = fit_parameters(contigs[clustering_K_ind])
             #if empty, pick random contig to represent that clusters
-            if not clustering_K_ind.any():
+            else:
                 new_centroid = np.arange(N) == rs.randint(0,N)
                 p_new[K_ind],sigma[K_ind] = fit_parameters(contigs[new_centroid])
                 print>>sys.stderr,"cluster {0} was empty in kmeans".format(K_ind)
-            #Fit the contigs that belong to this cluster to the center
-            else:
-                p_new[K_ind],sigma[K_ind] = fit_parameters(contigs[clustering_K_ind])
 
         #================================
         #Evaluation
         #================================
         curr_prob = 0
+        
+        #Calculate responsibility, I don't normalize since 
+        #I am only picking the greatest one and using that.
+        #These are the same number we would get from the expectation step in
+        #next iteration so they are reused there.
+        log_qs = log_pdf(contigs,p,sigma)
+        clustering_ind = np.argmax(log_qs,axis=1)
+        
         #for each cluster
         for K_ind in xrange(K):
             #create a boolean array representing that clusters so p[p_ind] is a 2D array (1xD)
@@ -179,8 +193,9 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         (p,p_new) = (p_new,p)
     print >> sys.stderr, "Kmeans iterations: {0}".format(iteration)
     
-    #Get current clustering
-    z = log_pdf(contigs,p,sigma)
+    #Get current clustering, not normalized since we pick the max one
+    log_qs = log_pdf(contigs,p,sigma)
     #Find each contigs most likely cluster
-    clustering = np.argmax(z,axis=1)
+    clustering = np.argmax(log_qs,axis=1)
+    
     return (clustering, curr_prob, (p, sigma))
