@@ -186,9 +186,7 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
         prob_diff = curr_prob - prev_prob 
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         (p,p_new) = (p_new,p)        
-        iteration += 1    
-        print iteration
-        
+        iteration += 1            
         
     #reverse so curr_prob is the current probability
     (curr_prob,prev_prob) = (prev_prob,curr_prob)
