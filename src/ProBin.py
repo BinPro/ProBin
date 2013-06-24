@@ -18,6 +18,10 @@ def main(cluster_func,contigs,p,K,epsilon,iterations,runs,verbose,serial, **kwar
     (clusters,clust_prob, centroids) = cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, serial, **kwargs)
     return (clusters,clust_prob,centroids)
 
+def _get_from_feature_csv(read_file):
+    df = pd.read_csv(read_file,index_col=0)
+    return np.array(df.values), np.array(df.index)
+
 def _get_contigs(arg_file,kmer):
     from probin.dna import DNA
     DNA.generate_kmer_hash(kmer)
@@ -75,10 +79,16 @@ if __name__=="__main__":
             p = args.centroids
             #data type
             if args.model_type == "composition":
-                contigs,idx = _get_contigs(args.composition_file,args.kmer)
+                if args.feature_vectors:
+                    contigs,idx =_get_from_feature_csv(args.composition_file)
+                else:
+                    contigs,idx = _get_contigs(args.composition_file,args.kmer)
                 outfile = args.composition_file
             elif args.model_type == "coverage":
-                contigs,idx = _get_coverage(args.coverage_file,args.first_data,args.last_data,args.read_length)
+                if args.feature_vectors:
+                    contigs,idx =_get_from_feature_csv(args.coverage_file)
+                else:
+                    contigs,idx = _get_coverage(args.coverage_file,args.first_data,args.last_data,args.read_length)
                 params["read_length"] = args.read_length
                 outfile = args.coverage_file
             elif args.model_type == "combined":

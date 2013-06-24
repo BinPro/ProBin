@@ -92,6 +92,8 @@ def default_bin_parser():
         help='specify predefined centroids (NOT IMPLEMENTET YET)')
     default_bin_parser.add_argument('-s', '--serial', action='store_true',
         help='execute clustering serial, for debug')
+    default_bin_parser.add_argument('-f', '--feature_vectors', action='store_true',
+        help='data already on feature format')
     return default_bin_parser
 def composition_parser():
     #=============================

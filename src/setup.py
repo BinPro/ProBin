@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1'
+version = '0.2'
 
 setup(name='probin',
       version=version,
@@ -13,7 +13,7 @@ To be done""",
       keywords='Python Scilifelab Metagenomics Binning Clustering Contig',
       author='Brynjar Smari Bjarnason, Johannes Alneberg',
       author_email='brynjar.bjarnason@scilifelab.se',
-      url='www.github.com/andand/probin',
+      url='www.github.com/BinPro/ProBin',
       license='',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       scripts=["ProBin.py"],
