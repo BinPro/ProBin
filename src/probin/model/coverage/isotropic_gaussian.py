@@ -10,12 +10,6 @@ def pdf(contigs,p,sigma):
         qs[i] = scipy.stats.norm.pdf(contig,loc=p,scale=sigma).prod(axis=1)
     return qs
 
-#def log_probabilities(mu,contigs=None,**kwargs):
-#    return log_pdf(mu,sigma,contigs,**kwargs)
-
-#def fit_nonzero_parameters(x,**kwargs):
-#    return fit_parameters(x,**kwargs)
-
 def log_pdf(contigs,p,sigma):
     log_qs = np.zeros((contigs.shape[0],p.shape[0]))
     for i,contig in enumerate(contigs):
