@@ -19,7 +19,7 @@ def main_parser():
     #Composition parameters
     #=============================
     parser_composition = bin_subparsers.add_parser('composition',parents=[default_bin_parser(),composition_parser()])
-    parser_composition.add_argument('-m','--model', default="multinomial", type=str, choices=['multinomial','dirichlet'],
+    parser_composition.add_argument('-m','--model', default="multinomial", type=str, choices=['multinomial','dirichlet','isotropic_gaussian'],
         help='specify the composition model to use, default multinomial.')
     parser_composition.set_defaults(model_type='composition')
 

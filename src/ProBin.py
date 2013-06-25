@@ -22,7 +22,7 @@ def _get_from_feature_csv(read_file):
     df = pd.read_csv(read_file,index_col=0)
     return np.array(df.values), np.array(df.index)
 
-def _get_contigs(arg_file,kmer):
+def _get_contigs(arg_file,kmer,nonzero_frequencies=False):
     from probin.dna import DNA
     DNA.generate_kmer_hash(kmer)
     try:
@@ -41,6 +41,11 @@ def _get_contigs(arg_file,kmer):
     for i,contig in enumerate(contigs):
         composition[i] = np.fromiter(contig.pseudo_counts,dtype=np.int) - 1
         ids.append(contig.id)
+    if nonzero_frequencies:
+        comp_sum = np.sum(composition)
+        composition += 1
+        composition /= comp_sum + composition.shape[1]
+        
     del contigs
     return composition,np.array(ids)
     
@@ -81,6 +86,8 @@ if __name__=="__main__":
             if args.model_type == "composition":
                 if args.feature_vectors:
                     contigs,idx =_get_from_feature_csv(args.composition_file)
+                elif args.model == "isotropic_gaussian":
+                    contigs,idx = _get_contigs(args.composition_file, args.kmer,nonzero_frequencies = True)
                 else:
                     contigs,idx = _get_contigs(args.composition_file,args.kmer)
                 outfile = args.composition_file
