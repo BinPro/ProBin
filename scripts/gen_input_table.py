@@ -3,7 +3,10 @@
 @author: inodb
 """
 import sys
+import os
 import argparse
+import subprocess
+import errno
 
 from Bio import SeqIO
 from Bio.SeqUtils import GC
@@ -22,7 +25,7 @@ def get_gc_and_len_dict(fastafile):
     return out_dict
 
 
-def get_bedcov_dict(bedcoveragefile):
+def get_bedcov_dict(bedcoverage):
     """Uses the BEDTools genomeCoverageBed histogram output to determine mean
     coverage and percentage covered for each contig.
     
@@ -30,7 +33,14 @@ def get_bedcov_dict(bedcoveragefile):
     keys for the inner dictionary."""
     out_dict = {}
 
-    for line in open(bedcoveragefile):
+    # Check if given argument is a file, otherwise use the content of the
+    # variable
+    if os.path.isfile(bedcoverage):
+        fh = open(bedcoverage)
+    else:
+        fh = bedcoverage.split('\n')[:-1]
+
+    for line in fh:
         cols = line.split()
 
         try:
@@ -47,16 +57,22 @@ def get_bedcov_dict(bedcoveragefile):
     return out_dict
 
 
-def generate_input_table_for_probin(fastafile, bedcovfiles):
-    """Writes the input table for Probin for stdout. See hackathon google
+def generate_input_table(fastafile, bedcovdicts, samplenames=None):
+    """Writes the input table for Probin to stdout. See hackathon google
     docs."""
     fastad = get_gc_and_len_dict(fastafile)
-    bedcovdicts = [ get_bedcov_dict(bcf) for bcf in bedcovfiles ]
     
     # Header
     sys.stdout.write("%s\t%s\t%s" % ( 'contig', 'length', 'GC' ))
-    for bcf in bedcovfiles:
-        sys.stdout.write("\tcov_mean_%s\tpercentage_covered_%s\n" % (bcf, bcf))
+    if samplenames == None:
+        # Use index if no sample names given in header
+        for i in range(len(bedcovdicts)):
+            sys.stdout.write("\tcov_mean_sample_%i\tpercentage_covered_sample_%i\n" % (i, i))
+    else:
+        # Use given sample names in header
+        assert(len(samplenames) == len(bedcovdicts))
+        for sn in samplenames:
+            sys.stdout.write("\tcov_mean_%s\tpercentage_covered_%s\n" % (sn, sn))
 
     # Content
     for acc in fastad:
@@ -81,9 +97,34 @@ def generate_input_table_for_probin(fastafile, bedcovfiles):
         sys.stdout.write("\n")
 
 
+def generate_input_table_from_bamfiles(fastafile, bamfiles, samplenames=None):
+    bedcovdicts = []
+    
+    for i, bf in enumerate(bamfiles):
+        p = subprocess.Popen(["genomeCoverageBed", "-ibam", bf], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            print out
+            raise Exception('Error with genomeCoverageBed')
+        else:
+            bedcovdicts.append(get_bedcov_dict(out))
+
+    generate_input_table(fastafile, bedcovdicts, samplenames=samplenames)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("fastafile", help="Contigs fasta file")
-    parser.add_argument("bedcovfiles", nargs='+', help="genomeCoverageBed histogram output")
+    parser.add_argument("bamfiles", nargs='+', help="BAM files with mappings to contigs")
+    parser.add_argument( "--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
     args = parser.parse_args()
-    generate_input_table_for_probin(args.fastafile, args.bedcovfiles)
+
+    # Get sample names
+    if args.samplenames != None:
+        samplenames = [ s[:-1] for s in open(args.samplenames).readlines() ]
+        if len(samplenames) != len(args.bamfiles):
+            raise Exception("Nr of names in samplenames should be equal to nr of given bamfiles")
+    else:
+        samplenames=None
+    
+    generate_input_table_from_bamfiles(args.fastafile, args.bamfiles, samplenames=samplenames)
