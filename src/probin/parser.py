@@ -30,6 +30,7 @@ def main_parser():
     parser_coverage = bin_subparsers.add_parser('coverage',parents=[default_bin_parser(),coverage_parser()])
     parser_coverage.add_argument('-m','--model', default="isotropic_gaussian", type=str, choices=['isotropic_gaussian'],
         help='specify the abundance model to use, default: isotropic_gaussian')
+    parser_coverage.add_argument('--read_mappings',action="store_true", help='Use this tag if coverage data concists of the number of reads mapping to each contig per sample')
     parser_coverage.set_defaults(model_type='coverage')
 
     #=============================
@@ -37,7 +38,7 @@ def main_parser():
     #=============================
     parser_coverage = bin_subparsers.add_parser('combined',parents=[default_bin_parser(),composition_parser(),coverage_parser()])
     parser_coverage.add_argument('-m','--model', default="simple_add", type=str, choices=['simple_add'],
-        help='specify the joined moedel to use, default: simple_add')
+        help='specify the joined model to use, default: simple_add')
     parser_coverage.set_defaults(model_type='combined')
 
     #=============================
