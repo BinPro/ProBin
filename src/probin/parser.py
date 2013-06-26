@@ -1,5 +1,6 @@
 import os
 from argparse import ArgumentParser
+from multiprocessing import cpu_count
 def main_parser():
     #=============================
     #Main parser
@@ -76,7 +77,7 @@ def default_bin_parser():
     
     default_bin_parser.add_argument('-a', '--algorithm', default='em', type=str, choices=['kmeans','em'],
         help='specify the clustering algorithm to use, default em.')
-    default_bin_parser.add_argument('-c', '--cluster_count', default=10, type=int,
+    default_bin_parser.add_argument('-c', '--cluster_counts', default=[10], type=int, nargs="+",
         help='specify the number of cluster to use')
     default_bin_parser.add_argument('-r', '--runs', default=16, type=int,
         help='specify the number of times to run clustering with different start conditions')
@@ -94,6 +95,10 @@ def default_bin_parser():
         help='execute clustering serial, for debug')
     default_bin_parser.add_argument('-f', '--feature_vectors', action='store_true',
         help='data already on feature format')
+    default_bin_parser.add_argument('-b', '--bic', action='store_true',
+        help='do bic calculations for different number of clusters given in cluster_counts')
+    default_bin_parser.add_argument('-p', '--processors', default=cpu_count(), type=int,
+        help='set number of processes to use')
     return default_bin_parser
 def composition_parser():
     #=============================

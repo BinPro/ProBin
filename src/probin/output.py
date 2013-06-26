@@ -9,8 +9,8 @@ import sys
 from datetime import datetime
 
 class Output(object):
-    file_name=None
     path=None
+    full_file_name=None
     start_time = None
     
     @classmethod
@@ -20,19 +20,16 @@ class Output(object):
             self.path = os.getcwd()
         else:
             self.path = args.output
-        if args.model_type =="composition":
-            self.file_name = "{0}_k{1}_c{2}_{3}".format(os.path.basename(data_file),args.kmer,args.cluster_count,args.algorithm)
-        elif args.model_type == "coverage":
-            self.file_name = "{0}_c{1}_first{2}_last{3}_read{4}".format(os.path.basename(data_file),args.cluster_count,args.first_data,args.last_data,args.algorithm)
-        if os.path.isfile(os.path.join(self.path,self.file_name)):
-            self.file_name = "{0}_no_override_{1}".format(self.file_name,datetime.now().strftime("%Y-%m-%d-%H.%M.%S"))
-        print >> sys.stderr, "Result files created in {0} as {1}:".format(self.path,self.file_name)
+        self.full_file_name = "{0}_{1}".format(os.path.join(self.path,os.path.basename(data_file)),args.algorithm)
+        if os.path.isfile(self.full_file_name):
+            self.full_file_name = "{0}_no_override_{1}".format(self.full_file_name,datetime.now().strftime("%Y-%m-%d-%H.%M.%S"))
+        print >> sys.stderr, "Result files created based on {0}:".format(self.full_file_name)
         
     @classmethod
-    def write_clustering_result(self,clusters, cluster_evaluation, centroids, idx=None, arguments="", tmpfile=False,tmpfile_suffix=""):
+    def write_clustering_result(self,clusters, cluster_evaluation, centroids, idx=None, arguments="", tmpfile=False,tmpfile_suffix="",cluster_number=None):
         if type(centroids) is tuple:
             centroids , sigma = centroids
-        if not self.path or not self.file_name:
+        if not self.path or not self.full_file_name:
             print >> sys.stderr, "You need to call Output.set_output_path to initialize output"
             return None
         #CLUSTERING INFORMATION OUTPUT
@@ -55,15 +52,21 @@ class Output(object):
         params =   {"args":arguments, "clust_prob":cluster_evaluation,
                     "centroids":os.linesep.join(repr_centroids),
                     "divide":"="*70,
-                    "directory":self.file_name,
+                    "directory":self.full_file_name,
                     "cluster_freq":os.linesep.join(cluster_freq),
                     "clusters":os.linesep.join(cluster_contigs_id),
                     "start_time":self.start_time,
                     "curr_time":curr_time,
                     "diff_time":(curr_time-self.start_time)}
         if tmpfile:
-            outfile = os.path.join(self.path,"_".join([self.file_name,str(tmpfile_suffix), curr_time.time().strftime("%H.%M.%S.%f")]))
+            outfile = "_".join([self.full_file_name,"tmp",str(tmpfile_suffix), curr_time.time().strftime("%H.%M.%S.%f")])
         else:
-            outfile = os.path.join(self.path,self.file_name)
+            outfile = self.full_file_name
         with open(outfile,"w") as clustinf:
             clustinf.write(os.linesep.join(RESULT).format(**params))
+    @classmethod
+    def write_bic(self,bics):
+        import numpy as np
+        outfile = self.full_file_name
+        for k,bic in bics:
+            np.savetxt("{0}_bic_{1}".format(outfile,k),bic,delimiter=",")

@@ -14,9 +14,8 @@ from probin.parser import main_parser
 from probin.preprocess import main_preprocess
 
 
-def main(cluster_func,contigs,p,K,epsilon,iterations,runs,verbose,serial, **kwargs):
-    (clusters,clust_prob, responsibility, probability_parameters) = cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, serial, **kwargs)
-    return (clusters,clust_prob,responsibility, probability_parameters)
+def main(cluster_func,contigs,p,K,epsilon,iterations,runs,verbose,serial, processors, **kwargs):
+    return cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, serial, processors, **kwargs)
 
 def _get_from_feature_csv(read_file):
     df = pd.read_csv(read_file,index_col=0)
@@ -77,6 +76,9 @@ if __name__=="__main__":
                 cluster_func = model.kmeans
             #centroids
             p = args.centroids
+            #Do BIC
+            params["BIC"] = args.bic
+            
             #data type
             if args.model_type == "composition":
                 if args.feature_vectors:
@@ -112,14 +114,13 @@ if __name__=="__main__":
         #=============================
         #Calling clustering
         #=============================
-        (clusters,clust_prob,responsibilities, probability_parameters) = main(cluster_func, contigs, p, args.cluster_count,args.epsilon,args.iterations, \
-                                               args.runs,args.verbose,args.serial, **params)
-
-        
-        #=============================
-        #Printing Results
-        #=============================
-        Output.write_clustering_result(clusters,clust_prob,responsibilities, probability_parameters,idx,args)
+        results = main(cluster_func, contigs, p, args.cluster_counts,args.epsilon,args.iterations, \
+                                               args.runs,args.verbose,args.serial, args.processors, **params)
+        for (k, (clusters,clust_prob,log_qs, probability_parameters)) in results:
+            #=============================
+            #Printing Results
+            #=============================
+            Output.write_clustering_result(clusters,clust_prob, probability_parameters,idx,args,cluster_number=k)
 
     #=============================
     #Preprocess timeseries data for coverage

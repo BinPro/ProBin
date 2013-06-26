@@ -32,7 +32,7 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
     
     #initialize with kmeans
     if not np.any(p):
-        clustering,_, p = kmeans(contigs, p, K, epsilon, 2, **kwargs)
+        clustering,_,log_qs, p = kmeans(contigs, p, K, epsilon, 2, **kwargs)
         
     else:
         print >> sys.stderr, "Not implemented for EM to start with fixed p (centroids)"
@@ -85,12 +85,12 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         (p,p_new) = (p_new,p)
         
-        
+    
     #Get current clustering
     log_qs = log_probabilities(contigs,p)
     #Find each contigs most likely cluster
     clustering = np.argmax(log_qs,axis=1)
-    return (clustering, curr_prob, z, p)
+    return (clustering, curr_prob, log_qs, p)
 
 def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())
@@ -179,4 +179,4 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     #Find each contigs most likely cluster
     clustering = np.argmax(log_qs,axis=1)
     
-    return (clustering, curr_prob, z, p)
+    return (clustering, curr_prob, log_qs, p)
