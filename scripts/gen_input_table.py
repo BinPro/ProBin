@@ -7,6 +7,7 @@ import os
 import argparse
 import subprocess
 import errno
+from signal import signal, SIGPIPE, SIG_DFL
 
 from Bio import SeqIO
 from Bio.SeqUtils import GC
@@ -59,21 +60,35 @@ def get_bedcov_dict(bedcoverage):
 
     return out_dict
 
+def get_gff_dict(gfffile):
+    """Creates a dictionary with product information from given gff file.
+    
+    Returns dictionary. Dictionary key is the contig id, values are products for the contig."""
+    out_dict = {}
 
-def print_input_table(fastadict, taxonomydict, bedcovdicts, samplenames=None):
+    for rec in GFF.parse(gfffile):
+        out_dict[rec.id] = ",".join([";".join([f.type] + f.qualifiers['product']) for f in rec.features])
+
+    return out_dict
+
+def print_sample_columns(t):
+    sys.stdout.write(("\tcov_mean_sample_%s" * len(t)) % t)
+    sys.stdout.write(("\tpercentage_covered_%s" * len(t)) % t)
+
+def print_input_table(fastadict, bedcovdicts, taxonomydict=None, gffdict=None, samplenames=None):
     """Writes the input table for Probin to stdout. See hackathon google
     docs."""
+
     # Header
-    sys.stdout.write(("%s" + "\t%s" * 8) % (('contig', 'length', 'GC') + TAXONOMY))
+    sys.stdout.write(("%s" + "\t%s" * 9) % (('contig', 'length', 'GC') + TAXONOMY + ('gff_info',)))
     if samplenames == None:
         # Use index if no sample names given in header
-        for i in range(len(bedcovdicts)):
-            sys.stdout.write("\tcov_mean_sample_%i\tpercentage_covered_sample_%i\n" % (i, i))
+        print_sample_columns(tuple(range(len(bedcovdicts))))
     else:
         # Use given sample names in header
         assert(len(samplenames) == len(bedcovdicts))
-        for sn in samplenames:
-            sys.stdout.write("\tcov_mean_%s\tpercentage_covered_%s\n" % (sn, sn))
+        print_sample_columns(tuple(samplenames))
+    sys.stdout.write("\n")
 
     # Content
     assert(len(fastadict) > 0)
@@ -88,13 +103,23 @@ def print_input_table(fastadict, taxonomydict, bedcovdicts, samplenames=None):
         )
 
         # taxonomy
-        for t in TAXONOMY:
+        if taxonomydict != None:
+            for t in TAXONOMY:
+                try:
+                    sys.stdout.write("\t%s" % taxonomydict[acc][t])
+                except KeyError:
+                    sys.stdout.write("\tN/A")
+        else:
+            sys.stdout.write("\tN/A" * len(TAXONOMY))
+
+        # gff data
+        if gffdict:
             try:
-                sys.stdout.write("\t%s" % taxonomydict[acc][t])
+                sys.stdout.write("\t%s" % gffdict[acc])
             except KeyError:
                 sys.stdout.write("\tN/A")
-                
-
+        else:
+            sys.stdout.write("\tN/A")
 
         # bed coverage stats
         for bcd in bedcovdicts:
@@ -105,7 +130,9 @@ def print_input_table(fastadict, taxonomydict, bedcovdicts, samplenames=None):
             except KeyError:
                 # No reads mapped to this contig
                 sys.stdout.write("\t0\t0")
+
         sys.stdout.write("\n")
+
 
 def get_taxonomy_dict(taxonomyfile):
     """Creates a dictionary from given taxonomy file.
@@ -126,29 +153,39 @@ def get_taxonomy_dict(taxonomyfile):
     return outdict
 
 
-def generate_input_table(fastafile, taxonomyfile, bamfiles, samplenames=None):
+def generate_input_table(fastafile, bamfiles, taxonomyfile=None, gfffile=None,
+    samplenames=None):
     """Reads input files into dictionaries then prints everything in the table
     format required for running ProBin."""
     bedcovdicts = []
     
+    # Determine coverage information from bam file using BEDTools
     for i, bf in enumerate(bamfiles):
         p = subprocess.Popen(["genomeCoverageBed", "-ibam", bf], stdout=subprocess.PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
-            print out
+            sys.stderr.write(out)
             raise Exception('Error with genomeCoverageBed')
         else:
             bedcovdicts.append(get_bedcov_dict(out))
 
-    print_input_table(get_gc_and_len_dict(fastafile), get_taxonomy_dict(taxonomyfile), bedcovdicts, samplenames=samplenames)
+    # Determine annotations from gfffile
+    gffdict = get_gff_dict(gfffile) if gfffile != None else None
+
+    # Determine taxonomies from taxonomyfile
+    taxonomydict = get_taxonomy_dict(taxonomyfile) if taxonomyfile != None else None
+
+    print_input_table(get_gc_and_len_dict(fastafile), bedcovdicts,
+        taxonomydict=taxonomydict, gffdict=gffdict, samplenames=samplenames)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("fastafile", help="Contigs fasta file")
-    parser.add_argument("taxonomy", help="The taxonomy for the contigs. Has"
-    " 7 columns. Contig name, Phylum, Class, Order, Family, Genus, Species.")
     parser.add_argument("bamfiles", nargs='+', help="BAM files with mappings to contigs")
+    parser.add_argument("--taxonomyfile", help="The taxonomy for the contigs. Has"
+    " 7 columns. Contig name, Phylum, Class, Order, Family, Genus, Species.")
+    parser.add_argument("--gfffile", default=None, help="GFF file with features info.")
     parser.add_argument( "--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
     args = parser.parse_args()
 
@@ -160,4 +197,10 @@ if __name__ == "__main__":
     else:
         samplenames=None
     
-    generate_input_table(args.fastafile, args.taxonomy, args.bamfiles, samplenames=samplenames)
+    # ignore broken pipe error when piping output
+    # http://newbebweb.blogspot.pt/2012/02/python-head-ioerror-errno-32-broken.html
+    signal(SIGPIPE,SIG_DFL)
+
+    generate_input_table(args.fastafile, args.bamfiles,
+        taxonomyfile=args.taxonomyfile, gfffile=args.gfffile,
+        samplenames=samplenames)
