@@ -85,11 +85,12 @@ def em(contigs, p, K, epsilon, max_iter, **kwargs):
         (curr_prob,prev_prob) = (prev_prob,curr_prob)
         (p,p_new) = (p_new,p)
         
+        
     #Get current clustering
     log_qs = log_probabilities(contigs,p)
     #Find each contigs most likely cluster
     clustering = np.argmax(log_qs,axis=1)
-    return (clustering, curr_prob, p)
+    return (clustering, curr_prob, z, p)
 
 def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     rs = np.random.RandomState(seed=randint(0,10000)+getpid())
@@ -178,4 +179,4 @@ def kmeans(contigs, p, K, epsilon, max_iter, **kwargs):
     #Find each contigs most likely cluster
     clustering = np.argmax(log_qs,axis=1)
     
-    return (clustering, curr_prob, p)
+    return (clustering, curr_prob, z, p)
