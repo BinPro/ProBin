@@ -61,12 +61,14 @@ class Output(object):
         if tmpfile:
             outfile = "_".join([self.full_file_name,"tmp",str(tmpfile_suffix), curr_time.time().strftime("%H.%M.%S.%f")])
         else:
-            outfile = self.full_file_name
+            outfile = "{0}_{1}".format(self.full_file_name,cluster_number)
         with open(outfile,"w") as clustinf:
             clustinf.write(os.linesep.join(RESULT).format(**params))
     @classmethod
     def write_bic(self,bics):
-        import numpy as np
-        outfile = self.full_file_name
-        for k,bic in bics:
-            np.savetxt("{0}_bic_{1}".format(outfile,k),bic,delimiter=",")
+        outfile = "{0}_bic".format(self.full_file_name)
+        with open(outfile,"w") as fh:
+            fh.write("k,bic,-2*sum(bic),k*D*log(N),reg_prob\n")
+            fh.writelines(["{0},{1},{2},{3},{4}{5}".format(k,bic,neg_bic,penalize,reg_prob,os.linesep) for k,bic,neg_bic,penalize,reg_prob in bics])
+                
+            

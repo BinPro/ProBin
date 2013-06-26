@@ -31,7 +31,7 @@ def cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, ser
         #Do bic calculations
         from probin.output import Output
         N,D = contigs.shape
-        bics = [(k,-2*bic[2]+k*D*np.log(N)) for k,bic in results]
+        bics = [(k,-2*np.sum(bic[2])+k*D*np.log(N),-2*np.sum(bic[2]),k*D*np.log(N),bic[1]) for k,bic in results]
         Output.write_bic(bics)
     
     return results
