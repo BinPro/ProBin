@@ -11,6 +11,9 @@ import errno
 from Bio import SeqIO
 from Bio.SeqUtils import GC
 
+from BCBio import GFF
+
+TAXONOMY = ('phylum', 'class', 'order', 'family', 'genus', 'species')
 
 def get_gc_and_len_dict(fastafile):
     """Creates a dictionary with the fasta id as key and GC and length as keys
@@ -61,8 +64,7 @@ def print_input_table(fastadict, taxonomydict, bedcovdicts, samplenames=None):
     """Writes the input table for Probin to stdout. See hackathon google
     docs."""
     # Header
-    sys.stdout.write(("%s" + "\t%s" * 4) % ( 'contig', 'genus', 'species',
-        'length', 'GC'))
+    sys.stdout.write(("%s" + "\t%s" * 8) % (('contig', 'length', 'GC') + TAXONOMY))
     if samplenames == None:
         # Use index if no sample names given in header
         for i in range(len(bedcovdicts)):
@@ -84,6 +86,15 @@ def print_input_table(fastadict, taxonomydict, bedcovdicts, samplenames=None):
                 fastadict[acc]['GC']
             )
         )
+
+        # taxonomy
+        for t in TAXONOMY:
+            try:
+                sys.stdout.write("\t%s" % taxonomydict[acc][t])
+            except KeyError:
+                sys.stdout.write("\tN/A")
+                
+
 
         # bed coverage stats
         for bcd in bedcovdicts:
@@ -108,11 +119,9 @@ def get_taxonomy_dict(taxonomyfile):
 
         # Should be 7 columns. Contig name, Phylum, Class, Order, Family,
         # Genus, Species.
-        assert(len(cols) == 7)
+        assert(len(cols) == len(TAXONOMY) + 1)
 
-        outdict[cols[0]] = {}
-        outdict[cols[0]]["genus"] = cols[-2]
-        outdict[cols[0]]["species"] = cols[-1]
+        outdict[cols[0]] = dict(zip(TAXONOMY, cols[1:-1] + [cols[-1].rstrip('\n')]))
 
     return outdict
 
