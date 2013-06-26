@@ -57,13 +57,12 @@ def get_bedcov_dict(bedcoverage):
     return out_dict
 
 
-def generate_input_table(fastafile, bedcovdicts, samplenames=None):
+def print_input_table(fastadict, taxonomydict, bedcovdicts, samplenames=None):
     """Writes the input table for Probin to stdout. See hackathon google
     docs."""
-    fastad = get_gc_and_len_dict(fastafile)
-    
     # Header
-    sys.stdout.write("%s\t%s\t%s" % ( 'contig', 'length', 'GC' ))
+    sys.stdout.write(("%s" + "\t%s" * 4) % ( 'contig', 'genus', 'species',
+        'length', 'GC'))
     if samplenames == None:
         # Use index if no sample names given in header
         for i in range(len(bedcovdicts)):
@@ -75,13 +74,14 @@ def generate_input_table(fastafile, bedcovdicts, samplenames=None):
             sys.stdout.write("\tcov_mean_%s\tpercentage_covered_%s\n" % (sn, sn))
 
     # Content
-    for acc in fastad:
+    assert(len(fastadict) > 0)
+    for acc in fastadict:
         # fasta stats
         sys.stdout.write("%s\t%s\t%s"  %
             (
                 acc,
-                fastad[acc]['length'],
-                fastad[acc]['GC']
+                fastadict[acc]['length'],
+                fastadict[acc]['GC']
             )
         )
 
@@ -96,8 +96,30 @@ def generate_input_table(fastafile, bedcovdicts, samplenames=None):
                 sys.stdout.write("\t0\t0")
         sys.stdout.write("\n")
 
+def get_taxonomy_dict(taxonomyfile):
+    """Creates a dictionary from given taxonomy file.
+    
+    The dictionary has contig name as key for the outer dictionary and genus
+    and species as keys for the inner dictionary."""
+    outdict = {}
 
-def generate_input_table_from_bamfiles(fastafile, bamfiles, samplenames=None):
+    for line in open(taxonomyfile):
+        cols = line.split(',')
+
+        # Should be 7 columns. Contig name, Phylum, Class, Order, Family,
+        # Genus, Species.
+        assert(len(cols) == 7)
+
+        outdict[cols[0]] = {}
+        outdict[cols[0]]["genus"] = cols[-2]
+        outdict[cols[0]]["species"] = cols[-1]
+
+    return outdict
+
+
+def generate_input_table(fastafile, taxonomyfile, bamfiles, samplenames=None):
+    """Reads input files into dictionaries then prints everything in the table
+    format required for running ProBin."""
     bedcovdicts = []
     
     for i, bf in enumerate(bamfiles):
@@ -109,12 +131,14 @@ def generate_input_table_from_bamfiles(fastafile, bamfiles, samplenames=None):
         else:
             bedcovdicts.append(get_bedcov_dict(out))
 
-    generate_input_table(fastafile, bedcovdicts, samplenames=samplenames)
+    print_input_table(get_gc_and_len_dict(fastafile), get_taxonomy_dict(taxonomyfile), bedcovdicts, samplenames=samplenames)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("fastafile", help="Contigs fasta file")
+    parser.add_argument("taxonomy", help="The taxonomy for the contigs. Has"
+    " 7 columns. Contig name, Phylum, Class, Order, Family, Genus, Species.")
     parser.add_argument("bamfiles", nargs='+', help="BAM files with mappings to contigs")
     parser.add_argument( "--samplenames", default=None, help="File with sample names, one line each. Should be same nr as bamfiles.")
     args = parser.parse_args()
@@ -127,4 +151,4 @@ if __name__ == "__main__":
     else:
         samplenames=None
     
-    generate_input_table_from_bamfiles(args.fastafile, args.bamfiles, samplenames=samplenames)
+    generate_input_table(args.fastafile, args.taxonomy, args.bamfiles, samplenames=samplenames)
