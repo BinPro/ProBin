@@ -67,7 +67,32 @@ def get_gff_dict(gfffile):
     out_dict = {}
 
     for rec in GFF.parse(gfffile):
-        out_dict[rec.id] = ",".join([";".join([f.type] + f.qualifiers['product']) for f in rec.features])
+
+        # Add features if there are any
+        if rec.features > 0:
+            gff_info = None
+                
+            # Add all features
+            # Features are separated by ,
+            # example:
+            # featuretype;product;product,featuretype;product
+            # or
+            # CDS;protein3;protein31,CDS;protein3
+            for f in rec.features:
+                if len(f.qualifiers['product']) > 0:
+                    # if gff_info is None, do not add ',' separator
+                    try:
+                        gff_info += ",%s" % ";".join([f.type] + f.qualifiers['product'])
+                    except TypeError:
+                        gff_info = ";".join([f.type] + f.qualifiers['product'])
+
+            # Test if there were any features with a product
+            if gff_info == None:
+                gff_info = "N/A"
+        else:
+            gff_info = "N/A"
+
+        out_dict[rec.id] = gff_info
 
     return out_dict
 
