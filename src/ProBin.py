@@ -44,12 +44,17 @@ def _get_contigs(arg_file,kmer):
     del contigs
     return composition,np.array(ids)
     
-def _get_coverage(arg_file,first_data,last_data,read_length):
+def _get_coverage(arg_file,first_data,last_data,read_length,read_mappings=False):
     try:
-        df = pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
-        v = df.ix[:,first_data:last_data].values
-        from probin.model.coverage.log_coverage import read_mappings_to_log_coverage
-        return read_mappings_to_log_coverage(v,df.contig_length.values.reshape(-1,1),read_length), np.array(df.index)
+        if not read_mappings:
+            df = pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
+            v = df.ix[:,first_data:last_data].values
+            return np.log(0.1+v),np.array(df.index)
+        else:
+            df = pd.io.parsers.read_table(arg_file,sep='\t',index_col=0)
+            v = df.ix[:,first_data:last_data].values
+            from probin.model.coverage.log_coverage import read_mappings_to_log_coverage
+            return read_mappings_to_log_coverage(v,df.contig_length.values.reshape(-1,1),read_length), np.array(df.index)
 
     except Exception as error:
         print >> sys.stderr, "Error reading file %s, message: %s" % (error.filename,error.message)
@@ -88,7 +93,7 @@ if __name__=="__main__":
                 if args.feature_vectors:
                     contigs,idx =_get_from_feature_csv(args.coverage_file)
                 else:
-                    contigs,idx = _get_coverage(args.coverage_file,args.first_data,args.last_data,args.read_length)
+                    contigs,idx = _get_coverage(args.coverage_file,args.first_data,args.last_data,args.read_length,read_mappings=args.read_mappings)
                 params["read_length"] = args.read_length
                 outfile = args.coverage_file
             elif args.model_type == "combined":
