@@ -15,8 +15,8 @@ from probin.preprocess import main_preprocess
 
 
 def main(cluster_func,contigs,p,K,epsilon,iterations,runs,verbose,serial, **kwargs):
-    (clusters,clust_prob, centroids) = cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, serial, **kwargs)
-    return (clusters,clust_prob,centroids)
+    (clusters,clust_prob, responsibility, probability_parameters) = cluster(cluster_func, contigs, p, K, epsilon, iterations, runs, verbose, serial, **kwargs)
+    return (clusters,clust_prob,responsibility, probability_parameters)
 
 def _get_from_feature_csv(read_file):
     df = pd.read_csv(read_file,index_col=0)
@@ -117,14 +117,14 @@ if __name__=="__main__":
         #=============================
         #Calling clustering
         #=============================
-        (clusters,clust_prob,centroids) = main(cluster_func, contigs, p, args.cluster_count,args.epsilon,args.iterations, \
+        (clusters,clust_prob,responsibilities, probability_parameters) = main(cluster_func, contigs, p, args.cluster_count,args.epsilon,args.iterations, \
                                                args.runs,args.verbose,args.serial, **params)
 
         
         #=============================
         #Printing Results
         #=============================
-        Output.write_clustering_result(clusters,clust_prob,centroids,idx,args)
+        Output.write_clustering_result(clusters,clust_prob,responsibilities, probability_parameters,idx,args)
 
     #=============================
     #Preprocess timeseries data for coverage
